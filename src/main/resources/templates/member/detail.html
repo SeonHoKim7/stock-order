@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 상세 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>회원 상세</h2>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<table border="1">
+    <tr><th>아이디</th><td th:text="${member.loginId}"></td></tr>
+    <tr><th>이름</th><td th:text="${member.name}"></td></tr>
+    <tr><th>이메일</th><td th:text="${member.email}"></td></tr>
+    <tr><th>역할</th><td th:text="${member.role}"></td></tr>
+    <tr><th>상태</th><td th:text="${member.active} ? '활성' : '비활성'"></td></tr>
+    <tr><th>가입일</th><td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td></tr>
+</table>
+
+<div>
+    <a th:href="@{/admin/members/{id}/edit(id=${member.memberId})}">수정</a>
+
+    <form th:if="${member.active}" th:action="@{/admin/members/{id}/deactivate(id=${member.memberId})}" method="post" style="display:inline;">
+        <button type="submit" onclick="return confirm('계정을 비활성화하시겠습니까?')">비활성화</button>
+    </form>
+
+    <form th:unless="${member.active}" th:action="@{/admin/members/{id}/activate(id=${member.memberId})}" method="post" style="display:inline;">
+        <button type="submit" onclick="return confirm('계정을 활성화하시겠습니까?')">활성화</button>
+    </form>
+
+    <a href="/admin/members">목록</a>
+</div>
+
+</body>
+</html>

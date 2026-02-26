@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>대시보드 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>대시보드</h2>
+
+<p>안녕하세요, <span th:text="${memberName}"></span>님 (<span th:text="${role}"></span>)</p>
+
+<form th:action="@{/logout}" method="post">
+    <button type="submit">로그아웃</button>
+</form>
+
+</body>
+</html>

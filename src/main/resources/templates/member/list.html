@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 목록 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>회원 목록</h2>
+
+<a href="/admin/members/new">신규 회원 생성</a>
+<a href="/dashboard">대시보드</a>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>아이디</th>
+            <th>이름</th>
+            <th>역할</th>
+            <th>상태</th>
+            <th>가입일</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="member : ${members.content}">
+            <td th:text="${member.memberId}"></td>
+            <td th:text="${member.loginId}"></td>
+            <td th:text="${member.name}"></td>
+            <td th:text="${member.role}"></td>
+            <td th:text="${member.active} ? '활성' : '비활성'"></td>
+            <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></td>
+            <td><a th:href="@{/admin/members/{id}(id=${member.memberId})}">상세</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<div>
+    <span th:text="${members.number + 1}"></span> / <span th:text="${members.totalPages}"></span> 페이지
+    <a th:if="${!members.first}" th:href="@{/admin/members(page=${members.number - 1})}">이전</a>
+    <a th:if="${!members.last}" th:href="@{/admin/members(page=${members.number + 1})}">다음</a>
+</div>
+
+</body>
+</html>

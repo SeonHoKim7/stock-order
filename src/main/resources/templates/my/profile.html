@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내 정보 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>내 정보</h2>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<table border="1">
+    <tr><th>아이디</th><td th:text="${member.loginId}"></td></tr>
+    <tr><th>이름</th><td th:text="${member.name}"></td></tr>
+    <tr><th>이메일</th><td th:text="${member.email}"></td></tr>
+    <tr><th>역할</th><td th:text="${member.role}"></td></tr>
+</table>
+
+<hr>
+
+<h3>비밀번호 변경</h3>
+
+<form th:action="@{/my/password}" th:object="${passwordForm}" method="post">
+    <div>
+        <label>현재 비밀번호</label>
+        <input type="password" th:field="*{currentPassword}">
+        <span th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}" style="color:red;"></span>
+    </div>
+    <div>
+        <label>새 비밀번호</label>
+        <input type="password" th:field="*{newPassword}">
+        <span th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" style="color:red;"></span>
+    </div>
+    <button type="submit">변경</button>
+</form>
+
+<a href="/dashboard">대시보드</a>
+
+</body>
+</html>
