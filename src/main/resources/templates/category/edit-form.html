@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>카테고리 수정 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>카테고리 수정</h2>
+
+<form th:action="@{/categories/{id}/edit(id=${category.categoryId})}"
+      th:object="${editForm}" method="post">
+    <div>
+        <label>이름</label>
+        <input type="text" th:field="*{name}">
+        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:red;"></span>
+    </div>
+    <div>
+        <label>설명</label>
+        <input type="text" th:field="*{description}">
+        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:red;"></span>
+    </div>
+    <button type="submit">저장</button>
+    <a href="/categories">취소</a>
+</form>
+
+</body>
+</html>
