@@ -7,7 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
-
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,6 +46,15 @@ public class GlobalExceptionHandler {
     public ModelAndView handleAccessDeniedException(AccessDeniedException e) {
         log.warn("[AccessDeniedException] {}", e.getMessage());
         return buildErrorView(HttpStatus.FORBIDDEN.value(), ErrorCode.ACCESS_DENIED.getMessage());
+    }
+
+    /**
+     * 존재하지 않는 URL/리소스 요청 (404)
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ModelAndView handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("[NoResourceFoundException] {}", e.getMessage());
+        return buildErrorView(HttpStatus.NOT_FOUND.value(), "요청한 페이지를 찾을 수 없습니다.");
     }
 
     /**
