@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 수정 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>상품 수정</h2>
+
+<a th:href="@{/products/{id}(id=${product.productId})}">상세로</a>
+
+<p>상품코드: <strong th:text="${product.productCode}"></strong> (변경 불가)</p>
+
+<form th:action="@{/products/{id}/edit(id=${product.productId})}" th:object="${form}" method="post">
+
+    <div>
+        <label>상품명 *</label>
+        <input type="text" th:field="*{name}">
+        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>카테고리</label>
+        <select th:field="*{categoryId}">
+            <option th:each="cat : ${categories}"
+                    th:value="${cat.categoryId}"
+                    th:text="${cat.name}"></option>
+        </select>
+        <span th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>단위 *</label>
+        <input type="text" th:field="*{unit}" placeholder="예: EA, BOX, KG">
+        <span th:if="${#fields.hasErrors('unit')}" th:errors="*{unit}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>단가 *</label>
+        <input type="number" th:field="*{unitPrice}" step="0.01" min="0">
+        <span th:if="${#fields.hasErrors('unitPrice')}" th:errors="*{unitPrice}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>안전 재고량</label>
+        <input type="number" th:field="*{safetyStock}" min="0">
+        <span th:if="${#fields.hasErrors('safetyStock')}" th:errors="*{safetyStock}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>설명</label>
+        <textarea th:field="*{description}" rows="3"></textarea>
+        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:red;"></span>
+    </div>
+
+    <button type="submit">저장</button>
+    <a th:href="@{/products/{id}(id=${product.productId})}">취소</a>
+</form>
+
+</body>
+</html>

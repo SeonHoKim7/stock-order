@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 관리 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>상품 관리</h2>
+
+<a href="/dashboard">대시보드</a>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<!-- 검색 폼 -->
+<form method="get" th:action="@{/products}">
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="상품명 또는 상품코드">
+    <select name="categoryId">
+        <option value="">전체 카테고리</option>
+        <option th:each="cat : ${categories}"
+                th:value="${cat.categoryId}"
+                th:text="${cat.name}"
+                th:selected="${cat.categoryId == categoryId}"></option>
+    </select>
+    <button type="submit">검색</button>
+    <a th:href="@{/products}">초기화</a>
+</form>
+
+<sec:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+    <a href="/products/new">상품 등록</a>
+</sec:authorize>
+
+<!-- 상품 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>상품코드</th>
+            <th>상품명</th>
+            <th>카테고리</th>
+            <th>단위</th>
+            <th>단가</th>
+            <th>안전재고</th>
+            <th>등록일</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.productCode}"></td>
+            <td><a th:href="@{/products/{id}(id=${product.productId})}" th:text="${product.name}"></a></td>
+            <td th:text="${product.categoryName}"></td>
+            <td th:text="${product.unit}"></td>
+            <td th:text="${#numbers.formatDecimal(product.unitPrice, 1, 'COMMA', 0, 'POINT')}"></td>
+            <td th:text="${product.safetyStock}"></td>
+            <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd')}"></td>
+            <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
+                <a th:href="@{/products/{id}/edit(id=${product.productId})}">수정</a>
+            </td>
+        </tr>
+        <tr th:if="${products.isEmpty()}">
+            <td colspan="8">등록된 상품이 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${products.totalPages > 1}">
+    <a th:if="${!products.first}"
+       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${products.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}">
+        <a th:if="${i != products.number}"
+           th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == products.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!products.last}"
+       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${products.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${products.totalElements}"></span>개</p>
+
+</body>
+</html>
