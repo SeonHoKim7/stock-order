@@ -4,6 +4,7 @@ import com.stockandorder.domain.category.dto.CategoryRequest;
 import com.stockandorder.domain.category.dto.CategoryResponse;
 import com.stockandorder.domain.category.entity.Category;
 import com.stockandorder.domain.category.repository.CategoryRepository;
+import com.stockandorder.domain.product.repository.ProductRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,9 @@ class CategoryServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     // ============================================================
     // getCategories
@@ -135,14 +139,28 @@ class CategoryServiceTest {
     // ============================================================
 
     @Test
-    @DisplayName("존재하는 카테고리를 삭제하면 delete가 호출된다")
-    void deleteCategory_existingCategory_callsDelete() {
+    @DisplayName("상품이 없는 카테고리를 삭제하면 delete가 호출된다")
+    void deleteCategory_noProducts_callsDelete() {
         Category category = Category.create("전자제품", null);
         given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productRepository.existsByCategoryCategoryId(1L)).willReturn(false);
 
         categoryService.deleteCategory(1L);
 
         then(categoryRepository).should().delete(category);
+    }
+
+    @Test
+    @DisplayName("상품이 존재하는 카테고리 삭제 시 CATEGORY_HAS_PRODUCTS 예외가 발생한다")
+    void deleteCategory_hasProducts_throwsException() {
+        Category category = Category.create("전자제품", null);
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productRepository.existsByCategoryCategoryId(1L)).willReturn(true);
+
+        assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.CATEGORY_HAS_PRODUCTS));
     }
 
     @Test

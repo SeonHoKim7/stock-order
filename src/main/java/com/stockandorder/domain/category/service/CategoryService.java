@@ -4,6 +4,7 @@ import com.stockandorder.domain.category.dto.CategoryRequest;
 import com.stockandorder.domain.category.dto.CategoryResponse;
 import com.stockandorder.domain.category.entity.Category;
 import com.stockandorder.domain.category.repository.CategoryRepository;
+import com.stockandorder.domain.product.repository.ProductRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
@@ -49,10 +51,9 @@ public class CategoryService {
 
     public void deleteCategory(Long categoryId) {
         Category category = findById(categoryId);
-        // TODO: Phase 3 Product 구현 후 상품 존재 여부 체크 추가
-        // if (productRepository.existsByCategoryCategoryId(categoryId)) {
-        //     throw new BusinessException(ErrorCode.CATEGORY_HAS_PRODUCTS);
-        // }
+        if (productRepository.existsByCategoryCategoryId(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_HAS_PRODUCTS);
+        }
         categoryRepository.delete(category);
     }
 
