@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>거래처 등록 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>거래처 등록</h2>
+
+<a href="/suppliers">목록으로</a>
+
+<form th:action="@{/suppliers}" th:object="${form}" method="post">
+
+    <div>
+        <label>거래처명 *</label>
+        <input type="text" th:field="*{name}">
+        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>거래처 유형 *</label>
+        <select th:field="*{supplierType}">
+            <option value="">-- 선택 --</option>
+            <option th:each="type : ${supplierTypes}"
+                    th:value="${type.name()}"
+                    th:text="${type.label}"></option>
+        </select>
+        <span th:if="${#fields.hasErrors('supplierType')}" th:errors="*{supplierType}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>담당자명</label>
+        <input type="text" th:field="*{contactName}">
+        <span th:if="${#fields.hasErrors('contactName')}" th:errors="*{contactName}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>연락처</label>
+        <input type="text" th:field="*{contactPhone}" placeholder="예: 02-1234-5678">
+        <span th:if="${#fields.hasErrors('contactPhone')}" th:errors="*{contactPhone}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>이메일</label>
+        <input type="text" th:field="*{contactEmail}">
+        <span th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>주소</label>
+        <textarea th:field="*{address}" rows="2"></textarea>
+        <span th:if="${#fields.hasErrors('address')}" th:errors="*{address}" style="color:red;"></span>
+    </div>
+
+    <button type="submit">등록</button>
+    <a href="/suppliers">취소</a>
+</form>
+
+</body>
+</html>

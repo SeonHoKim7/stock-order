@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>거래처 관리 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>거래처 관리</h2>
+
+<a href="/dashboard">대시보드</a>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<!-- 검색 폼 -->
+<form method="get" th:action="@{/suppliers}">
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="거래처명 또는 담당자명">
+    <select name="supplierType">
+        <option value="">전체 유형</option>
+        <option th:each="type : ${supplierTypes}"
+                th:value="${type.name()}"
+                th:text="${type.label}"
+                th:selected="${type == supplierType}"></option>
+    </select>
+    <button type="submit">검색</button>
+    <a th:href="@{/suppliers}">초기화</a>
+</form>
+
+<sec:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+    <a href="/suppliers/new">거래처 등록</a>
+</sec:authorize>
+
+<!-- 거래처 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>거래처명</th>
+            <th>유형</th>
+            <th>담당자</th>
+            <th>연락처</th>
+            <th>등록일</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="supplier : ${suppliers}">
+            <td><a th:href="@{/suppliers/{id}(id=${supplier.supplierId})}" th:text="${supplier.name}"></a></td>
+            <td th:text="${supplier.supplierTypeLabel}"></td>
+            <td th:text="${supplier.contactName != null ? supplier.contactName : '-'}"></td>
+            <td th:text="${supplier.contactPhone != null ? supplier.contactPhone : '-'}"></td>
+            <td th:text="${#temporals.format(supplier.createdAt, 'yyyy-MM-dd')}"></td>
+            <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
+                <a th:href="@{/suppliers/{id}/edit(id=${supplier.supplierId})}">수정</a>
+            </td>
+        </tr>
+        <tr th:if="${suppliers.isEmpty()}">
+            <td colspan="6">등록된 거래처가 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${suppliers.totalPages > 1}">
+    <a th:if="${!suppliers.first}"
+       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${suppliers.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, suppliers.totalPages - 1)}">
+        <a th:if="${i != suppliers.number}"
+           th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == suppliers.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!suppliers.last}"
+       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${suppliers.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${suppliers.totalElements}"></span>개</p>
+
+</body>
+</html>
