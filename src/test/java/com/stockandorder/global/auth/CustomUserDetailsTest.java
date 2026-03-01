@@ -79,8 +79,6 @@ class CustomUserDetailsTest {
         assertThat(userDetails.getRole()).isEqualTo(Role.STAFF);
     }
 
-    // -----------------------
-
     private void assertAuthority(Role role, String expectedAuthority) {
         Member member = Member.create("id", "pw", "name", null, role);
         CustomUserDetails userDetails = new CustomUserDetails(member);

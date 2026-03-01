@@ -21,10 +21,6 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    // ============================================================
-    // 목록 + 등록 폼 (한 페이지)
-    // ============================================================
-
     @GetMapping
     public String categoryList(Model model) {
         model.addAttribute("categories", categoryService.getCategories());
@@ -53,10 +49,6 @@ public class CategoryController {
         }
         return "redirect:/categories";
     }
-
-    // ============================================================
-    // 수정
-    // ============================================================
 
     @GetMapping("/{id}/edit")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
@@ -92,10 +84,6 @@ public class CategoryController {
         }
         return "redirect:/categories";
     }
-
-    // ============================================================
-    // 삭제
-    // ============================================================
 
     @PostMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")

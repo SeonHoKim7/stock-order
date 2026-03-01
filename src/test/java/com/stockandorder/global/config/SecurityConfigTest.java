@@ -37,10 +37,6 @@ class SecurityConfigTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // ============================================================
-    // URL 접근 제어
-    // ============================================================
-
     @Test
     @DisplayName("미인증 상태로 /dashboard 접근 시 로그인 페이지로 리다이렉트된다")
     void unauthenticated_dashboard_redirectsToLogin() throws Exception {
@@ -73,10 +69,6 @@ class SecurityConfigTest {
         mockMvc.perform(get("/admin/members").with(user(userDetails)))
                 .andExpect(status().isForbidden());
     }
-
-    // ============================================================
-    // 로그인
-    // ============================================================
 
     @Test
     @DisplayName("올바른 아이디/비밀번호로 로그인 시 /dashboard로 리다이렉트된다")
@@ -125,10 +117,6 @@ class SecurityConfigTest {
                 .andExpect(redirectedUrl("/login?error=true"));
     }
 
-    // ============================================================
-    // 로그아웃
-    // ============================================================
-
     @Test
     @DisplayName("로그아웃 시 /login?logout=true로 리다이렉트된다")
     void logout_redirectsToLoginWithLogout() throws Exception {
@@ -138,10 +126,6 @@ class SecurityConfigTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?logout=true"));
     }
-
-    // ============================================================
-    // 헬퍼 메서드
-    // ============================================================
 
     private CustomUserDetails staffUserDetails() {
         Member member = Member.create("staff01", "encoded", "홍길동", null, Role.STAFF);

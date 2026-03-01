@@ -10,9 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductTest {
 
-    // ============================================================
     // create
-    // ============================================================
 
     @Test
     @DisplayName("create() 호출 시 전달한 값으로 필드가 설정되고 isActive는 true이다")
@@ -35,9 +33,7 @@ class ProductTest {
     }
 
 
-    // ============================================================
     // update
-    // ============================================================
 
     @Test
     @DisplayName("update() 호출 시 수정 가능한 필드들이 변경된다")
@@ -57,9 +53,7 @@ class ProductTest {
         assertThat(product.getDescription()).isEqualTo("신설명");
     }
 
-    // ============================================================
     // deactivate / activate
-    // ============================================================
 
     @Test
     @DisplayName("deactivate() 호출 시 isActive가 false가 된다")

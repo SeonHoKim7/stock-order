@@ -36,10 +36,6 @@ class MemberServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    // ============================================================
-    // createMember
-    // ============================================================
-
     @Test
     @DisplayName("중복되지 않는 loginId로 회원을 생성하면 저장된다")
     void createMember_uniqueLoginId_savesMember() {
@@ -63,10 +59,6 @@ class MemberServiceTest {
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.MEMBER_LOGIN_ID_DUPLICATE));
     }
-
-    // ============================================================
-    // updateMember
-    // ============================================================
 
     @Test
     @DisplayName("회원 정보 수정 시 name, email, role이 변경된다")
@@ -98,10 +90,6 @@ class MemberServiceTest {
                         .isEqualTo(ErrorCode.MEMBER_NOT_FOUND));
     }
 
-    // ============================================================
-    // deactivateMember / activateMember
-    // ============================================================
-
     @Test
     @DisplayName("deactivateMember() 호출 시 isActive가 false가 된다")
     void deactivateMember_setsIsActiveFalse() {
@@ -124,10 +112,6 @@ class MemberServiceTest {
 
         assertThat(member.isActive()).isTrue();
     }
-
-    // ============================================================
-    // changePassword
-    // ============================================================
 
     @Test
     @DisplayName("현재 비밀번호가 일치하면 새 비밀번호로 변경된다")
@@ -162,10 +146,6 @@ class MemberServiceTest {
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.MEMBER_PASSWORD_MISMATCH));
     }
-
-    // ============================================================
-    // 헬퍼 메서드
-    // ============================================================
 
     private MemberCreateRequest createRequest(String loginId, String password, Role role) {
         MemberCreateRequest request = new MemberCreateRequest();

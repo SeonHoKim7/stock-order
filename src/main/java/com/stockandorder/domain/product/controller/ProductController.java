@@ -28,10 +28,6 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
 
-    // ============================================================
-    // 목록 (검색 + 페이징)
-    // ============================================================
-
     @GetMapping
     public String list(@RequestParam(required = false) String keyword,
                        @RequestParam(required = false) Long categoryId,
@@ -45,19 +41,11 @@ public class ProductController {
         return "product/list";
     }
 
-    // ============================================================
-    // 상세
-    // ============================================================
-
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("product", productService.getProduct(id));
         return "product/detail";
     }
-
-    // ============================================================
-    // 등록
-    // ============================================================
 
     @GetMapping("/new")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
@@ -88,10 +76,6 @@ public class ProductController {
         }
         return "redirect:/products";
     }
-
-    // ============================================================
-    // 수정
-    // ============================================================
 
     @GetMapping("/{id}/edit")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
@@ -124,10 +108,6 @@ public class ProductController {
         productService.updateProduct(id, form);
         return "redirect:/products/" + id;
     }
-
-    // ============================================================
-    // 비활성화
-    // ============================================================
 
     @PostMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")

@@ -36,9 +36,7 @@ class CategoryServiceTest {
     @Mock
     private ProductRepository productRepository;
 
-    // ============================================================
     // getCategories
-    // ============================================================
 
     @Test
     @DisplayName("카테고리 목록을 이름 오름차순으로 반환한다")
@@ -56,9 +54,7 @@ class CategoryServiceTest {
         assertThat(result.get(1).getName()).isEqualTo("채소");
     }
 
-    // ============================================================
     // createCategory
-    // ============================================================
 
     @Test
     @DisplayName("중복되지 않는 이름으로 카테고리를 생성하면 저장된다")
@@ -81,9 +77,7 @@ class CategoryServiceTest {
                         .isEqualTo(ErrorCode.CATEGORY_NAME_DUPLICATE));
     }
 
-    // ============================================================
     // updateCategory
-    // ============================================================
 
     @Test
     @DisplayName("수정 시 이름과 설명이 변경된다")
@@ -134,9 +128,7 @@ class CategoryServiceTest {
                         .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    // ============================================================
     // deleteCategory
-    // ============================================================
 
     @Test
     @DisplayName("상품이 없는 카테고리를 삭제하면 delete가 호출된다")
@@ -174,9 +166,7 @@ class CategoryServiceTest {
                         .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    // ============================================================
     // 헬퍼 메서드
-    // ============================================================
 
     private CategoryRequest request(String name, String description) {
         CategoryRequest request = new CategoryRequest();

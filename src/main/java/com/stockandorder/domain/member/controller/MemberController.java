@@ -31,10 +31,6 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    // ============================================================
-    // 관리자 - 회원 목록
-    // ============================================================
-
     @GetMapping("/admin/members")
     public String memberList(Model model,
                              @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -42,10 +38,6 @@ public class MemberController {
         model.addAttribute("members", members);
         return "member/list";
     }
-
-    // ============================================================
-    // 관리자 - 회원 생성
-    // ============================================================
 
     @GetMapping("/admin/members/new")
     public String createForm(Model model) {
@@ -75,19 +67,11 @@ public class MemberController {
         return "redirect:/admin/members";
     }
 
-    // ============================================================
-    // 관리자 - 회원 상세
-    // ============================================================
-
     @GetMapping("/admin/members/{id}")
     public String memberDetail(@PathVariable Long id, Model model) {
         model.addAttribute("member", memberService.getMember(id));
         return "member/detail";
     }
-
-    // ============================================================
-    // 관리자 - 회원 수정
-    // ============================================================
 
     @GetMapping("/admin/members/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
@@ -116,10 +100,6 @@ public class MemberController {
         return "redirect:/admin/members/" + id;
     }
 
-    // ============================================================
-    // 관리자 - 회원 활성화/비활성화
-    // ============================================================
-
     @PostMapping("/admin/members/{id}/deactivate")
     public String deactivate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         memberService.deactivateMember(id);
@@ -133,10 +113,6 @@ public class MemberController {
         redirectAttributes.addFlashAttribute("message", "계정이 활성화되었습니다.");
         return "redirect:/admin/members/" + id;
     }
-
-    // ============================================================
-    // 내 정보
-    // ============================================================
 
     @GetMapping("/my/profile")
     public String myProfile(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {

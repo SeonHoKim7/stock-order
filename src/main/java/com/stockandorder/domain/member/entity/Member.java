@@ -34,17 +34,11 @@ public class Member extends BaseTimeEntity {
     private Role role;
 
 
-    // is 접두사 필드는 Hibernate가 컬럼명을 'active'로 잘못 매핑할 수 있어 명시적으로 지정
-    // 로그인 시 Spring Security가 자동으로 로그인 체크를 하기 위함. CustomUserDetailsService를 통해
-    // 따라서, 비활성화 된 계정이라면 올바르게 로그인 해도 막힘. why? 관리자가 계정 활성화/비활성화 하기 위함
-    // + 향후 회원 목록 조회 시, 활성화 된 회원만 조회하도록
+    // boolean 필드에 is 접두사가 붙으면 Hibernate가 컬럼명을 'active'로 매핑할 수 있어 명시적으로 지정
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
-
-    // 팩토리 메서드 - 생성 시점의 불변식 보장
-    // 자체 회원가입은 없고 관리자가 계정을 생성하므로 역할을 명시적으로 받는다.
-
+    // 자체 회원가입 없이 관리자가 계정을 직접 생성하므로 역할을 파라미터로 받는다
     public static Member create(String loginId, String encodedPassword, String name, String email, Role role) {
         Member member = new Member();
         member.loginId = loginId;
@@ -56,8 +50,6 @@ public class Member extends BaseTimeEntity {
         return member;
     }
 
-
-    // 비즈니스 메서드 - setter 대신 의도가 드러나는 메서드로 상태 변경
 
     public void updateProfile(String name, String email, Role role) {
         this.name = name;

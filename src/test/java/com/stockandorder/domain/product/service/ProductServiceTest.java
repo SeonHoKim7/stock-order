@@ -42,9 +42,7 @@ class ProductServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    // ============================================================
     // searchProducts
-    // ============================================================
 
     @Test
     @DisplayName("빈 문자열 키워드는 null로 변환하여 repository에 전달한다")
@@ -84,9 +82,7 @@ class ProductServiceTest {
         assertThat(result.getContent().get(0).getProductCode()).isEqualTo("PRD-00001");
     }
 
-    // ============================================================
     // getProduct
-    // ============================================================
 
     @Test
     @DisplayName("존재하는 상품 조회 시 ProductResponse를 반환한다")
@@ -114,9 +110,7 @@ class ProductServiceTest {
                         .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
-    // ============================================================
     // createProduct
-    // ============================================================
 
     @Test
     @DisplayName("카테고리와 함께 상품을 정상 등록하면 저장된다")
@@ -156,9 +150,7 @@ class ProductServiceTest {
                         .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    // ============================================================
     // updateProduct
-    // ============================================================
 
     @Test
     @DisplayName("상품 수정 시 전달한 값으로 필드가 변경된다")
@@ -211,9 +203,7 @@ class ProductServiceTest {
                         .isEqualTo(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    // ============================================================
     // 상품 비활성화(deactivateProduct)
-    // ============================================================
 
     @Test
     @DisplayName("deactivateProduct() 호출 시 isActive가 false가 된다")
@@ -239,9 +229,7 @@ class ProductServiceTest {
                         .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
-    // ============================================================
     // 상품 활성화(activateProduct)
-    // ============================================================
 
     @Test
     @DisplayName("activateProduct() 호출 시 isActive가 true가 된다")
@@ -268,9 +256,7 @@ class ProductServiceTest {
                         .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
-    // ============================================================
     // 헬퍼 메서드
-    // ============================================================
 
     private ProductCreateRequest createRequest(String code, String name, Long categoryId) {
         ProductCreateRequest request = new ProductCreateRequest();
