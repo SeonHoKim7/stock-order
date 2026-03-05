@@ -14,12 +14,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class SupplierService {
 
     private final SupplierRepository supplierRepository;
+
+    @Transactional(readOnly = true)
+    public List<SupplierResponse> getActiveSuppliers() {
+        return supplierRepository.findByIsActiveTrue().stream()
+                .map(SupplierResponse::from)
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public Page<SupplierResponse> searchSuppliers(String keyword, SupplierType supplierType, Pageable pageable) {

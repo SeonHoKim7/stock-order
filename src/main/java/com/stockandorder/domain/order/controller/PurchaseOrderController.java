@@ -1,12 +1,16 @@
 package com.stockandorder.domain.order.controller;
 
 import com.stockandorder.domain.order.dto.PurchaseOrderCreateRequest;
+import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
 import com.stockandorder.domain.order.service.PurchaseOrderService;
 import com.stockandorder.domain.product.service.ProductService;
 import com.stockandorder.domain.supplier.service.SupplierService;
 import com.stockandorder.global.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +26,15 @@ public class PurchaseOrderController {
     private final PurchaseOrderService purchaseOrderService;
     private final SupplierService supplierService;
     private final ProductService productService;
+
+    @GetMapping
+    public String list(@ModelAttribute("condition") PurchaseOrderSearchCondition condition,
+                       @PageableDefault(size = 10, sort = "orderedAt", direction = Sort.Direction.DESC) Pageable pageable,
+                       Model model) {
+        model.addAttribute("orders", purchaseOrderService.searchOrders(condition, pageable));
+        model.addAttribute("suppliers", supplierService.getActiveSuppliers());
+        return "order/list";
+    }
 
     @GetMapping("/new")
     public String createForm(Model model) {

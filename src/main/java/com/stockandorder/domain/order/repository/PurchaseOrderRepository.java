@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
+public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long>, PurchaseOrderRepositoryCustom {
 
     @Query("SELECT MAX(po.orderNumber) FROM PurchaseOrder po WHERE po.orderNumber LIKE :prefix%")
     Optional<String> findMaxOrderNumberByPrefix(@Param("prefix") String prefix);

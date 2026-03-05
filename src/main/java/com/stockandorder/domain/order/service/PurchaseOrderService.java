@@ -3,7 +3,9 @@ package com.stockandorder.domain.order.service;
 import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.order.dto.PurchaseOrderCreateRequest;
+import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
 import com.stockandorder.domain.order.dto.PurchaseOrderResponse;
+import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
 import com.stockandorder.domain.order.entity.PurchaseOrder;
 import com.stockandorder.domain.order.entity.PurchaseOrderItem;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
@@ -16,6 +18,8 @@ import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +60,11 @@ public class PurchaseOrderService {
 
         PurchaseOrder saved = saveWithRetry(order);
         return saved.getOrderId();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PurchaseOrderListResponse> searchOrders(PurchaseOrderSearchCondition condition, Pageable pageable) {
+        return purchaseOrderRepository.search(condition, pageable);
     }
 
     @Transactional(readOnly = true)
