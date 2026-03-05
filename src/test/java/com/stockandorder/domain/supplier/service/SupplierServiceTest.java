@@ -37,6 +37,32 @@ class SupplierServiceTest {
     @Mock
     private SupplierRepository supplierRepository;
 
+    // getActiveSuppliers
+
+    @Test
+    @DisplayName("활성 거래처가 있으면 SupplierResponse 리스트를 반환한다")
+    void getActiveSuppliers_hasActiveSuppliers_returnsResponseList() {
+        Supplier s1 = Supplier.create("공급처A", SupplierType.PURCHASE, "홍길동", null, null, null);
+        Supplier s2 = Supplier.create("공급처B", SupplierType.BOTH, "김철수", null, null, null);
+        given(supplierRepository.findByIsActiveTrue()).willReturn(List.of(s1, s2));
+
+        List<SupplierResponse> result = supplierService.getActiveSuppliers();
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getName()).isEqualTo("공급처A");
+        assertThat(result.get(1).getName()).isEqualTo("공급처B");
+    }
+
+    @Test
+    @DisplayName("활성 거래처가 없으면 빈 리스트를 반환한다")
+    void getActiveSuppliers_noActiveSuppliers_returnsEmptyList() {
+        given(supplierRepository.findByIsActiveTrue()).willReturn(List.of());
+
+        List<SupplierResponse> result = supplierService.getActiveSuppliers();
+
+        assertThat(result).isEmpty();
+    }
+
     // searchSuppliers
 
     @Test

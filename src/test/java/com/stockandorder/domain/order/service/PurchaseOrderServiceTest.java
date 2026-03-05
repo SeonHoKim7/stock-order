@@ -5,7 +5,12 @@ import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.member.enums.Role;
 import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.order.dto.PurchaseOrderCreateRequest;
+import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
+import com.stockandorder.domain.order.dto.PurchaseOrderResponse;
+import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
 import com.stockandorder.domain.order.entity.PurchaseOrder;
+import com.stockandorder.domain.order.entity.PurchaseOrderItem;
+import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.product.repository.ProductRepository;
@@ -23,6 +28,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -219,6 +229,75 @@ class PurchaseOrderServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    // searchOrders
+
+    @Nested
+    @DisplayName("searchOrders")
+    class SearchOrders {
+
+        @Test
+        @DisplayName("condition과 pageable을 repository에 위임하고 결과를 그대로 반환한다")
+        void searchOrders_delegatesToRepository() {
+            PurchaseOrderSearchCondition condition = new PurchaseOrderSearchCondition();
+            condition.setStatus(OrderStatus.PENDING);
+            Pageable pageable = PageRequest.of(0, 10);
+
+            PurchaseOrderListResponse listResponse = new PurchaseOrderListResponse(
+                    1L, "PO-20260306-001", "공급처A", "직원1",
+                    OrderStatus.PENDING, BigDecimal.valueOf(100000), java.time.LocalDateTime.now()
+            );
+            Page<PurchaseOrderListResponse> expectedPage = new PageImpl<>(List.of(listResponse), pageable, 1);
+            given(purchaseOrderRepository.search(condition, pageable)).willReturn(expectedPage);
+
+            Page<PurchaseOrderListResponse> result = purchaseOrderService.searchOrders(condition, pageable);
+
+            assertThat(result).isSameAs(expectedPage);
+            then(purchaseOrderRepository).should().search(condition, pageable);
+        }
+    }
+
+    // getOrder
+
+    @Nested
+    @DisplayName("getOrder")
+    class GetOrder {
+
+        @Test
+        @DisplayName("존재하는 발주 조회 시 PurchaseOrderResponse를 반환한다")
+        void getOrder_existingOrder_returnsResponse() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, "테스트");
+            PurchaseOrderItem item = PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000));
+            order.addItem(item);
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+
+            PurchaseOrderResponse result = purchaseOrderService.getOrder(1L);
+
+            assertThat(result.getOrderNumber()).isEqualTo("PO-20260306-001");
+            assertThat(result.getSupplierName()).isEqualTo("공급처A");
+            assertThat(result.getRequesterName()).isEqualTo("직원1");
+            assertThat(result.getStatus()).isEqualTo("PENDING");
+            assertThat(result.getStatusLabel()).isEqualTo("대기");
+            assertThat(result.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(50000));
+            assertThat(result.getNote()).isEqualTo("테스트");
+            assertThat(result.getApproverName()).isNull();
+            assertThat(result.getItems()).hasSize(1);
+            assertThat(result.getItems().get(0).getProductName()).isEqualTo("밀가루");
+            assertThat(result.getItems().get(0).getQuantity()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 발주 조회 시 ORDER_NOT_FOUND 예외가 발생한다")
+        void getOrder_notFound_throwsException() {
+            given(purchaseOrderRepository.findById(999L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> purchaseOrderService.getOrder(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.ORDER_NOT_FOUND));
+        }
     }
 
     // 헬퍼 메서드
