@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -67,6 +68,7 @@ class PurchaseOrderServiceTest {
     private Supplier salesSupplier;
     private Supplier inactiveSupplier;
     private Member requester;
+    private Member manager;
     private Product product1;
     private Product product2;
 
@@ -81,6 +83,10 @@ class PurchaseOrderServiceTest {
         inactiveSupplier.deactivate();
 
         requester = Member.create("staff1", "password", "직원1", "staff1@test.com", Role.STAFF);
+        ReflectionTestUtils.setField(requester, "memberId", 1L);
+
+        manager = Member.create("manager1", "password", "매니저1", "manager1@test.com", Role.MANAGER);
+        ReflectionTestUtils.setField(manager, "memberId", 2L);
 
         Category category = Category.create("식자재", null);
         product1 = Product.create("PRD-001", "밀가루", category, "KG",
@@ -297,6 +303,117 @@ class PurchaseOrderServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.ORDER_NOT_FOUND));
+        }
+    }
+
+    // approveOrder
+
+    @Nested
+    @DisplayName("approveOrder")
+    class ApproveOrder {
+
+        @Test
+        @DisplayName("매니저가 타인의 PENDING 발주를 승인하면 APPROVED 상태가 된다")
+        void approveOrder_validRequest_changesStatusToApproved() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+            given(memberRepository.findById(2L)).willReturn(Optional.of(manager));
+
+            purchaseOrderService.approveOrder(1L, 2L);
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.APPROVED);
+            assertThat(order.getApprover()).isEqualTo(manager);
+            assertThat(order.getProcessedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("요청자 본인이 승인하려고 하면 ORDER_SELF_APPROVAL 예외가 발생한다")
+        void approveOrder_selfApproval_throwsException() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(requester));
+
+            assertThatThrownBy(() -> purchaseOrderService.approveOrder(1L, 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.ORDER_SELF_APPROVAL));
+        }
+    }
+
+    // rejectOrder
+
+    @Nested
+    @DisplayName("rejectOrder")
+    class RejectOrder {
+
+        @Test
+        @DisplayName("매니저가 타인의 PENDING 발주를 반려하면 REJECTED 상태가 되고 사유가 저장된다")
+        void rejectOrder_validRequest_changesStatusToRejected() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+            given(memberRepository.findById(2L)).willReturn(Optional.of(manager));
+
+            purchaseOrderService.rejectOrder(1L, 2L, "단가 재협상 필요");
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.REJECTED);
+            assertThat(order.getApprover()).isEqualTo(manager);
+            assertThat(order.getRejectReason()).isEqualTo("단가 재협상 필요");
+            assertThat(order.getProcessedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("요청자 본인이 반려하려고 하면 ORDER_SELF_APPROVAL 예외가 발생한다")
+        void rejectOrder_selfReject_throwsException() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(requester));
+
+            assertThatThrownBy(() -> purchaseOrderService.rejectOrder(1L, 1L, "사유"))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.ORDER_SELF_APPROVAL));
+        }
+    }
+
+    // cancelOrder
+
+    @Nested
+    @DisplayName("cancelOrder")
+    class CancelOrder {
+
+        @Test
+        @DisplayName("요청자 본인이 PENDING 발주를 취소하면 CANCELLED 상태가 된다")
+        void cancelOrder_byRequester_changesStatusToCancelled() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+
+            purchaseOrderService.cancelOrder(1L, 1L);
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        }
+
+        @Test
+        @DisplayName("요청자가 아닌 사람이 취소하려고 하면 ORDER_NOT_REQUESTER 예외가 발생한다")
+        void cancelOrder_notRequester_throwsException() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260306-001", purchaseSupplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 5, BigDecimal.valueOf(10000)));
+
+            given(purchaseOrderRepository.findById(1L)).willReturn(Optional.of(order));
+
+            assertThatThrownBy(() -> purchaseOrderService.cancelOrder(1L, 2L))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.ORDER_NOT_REQUESTER));
         }
     }
 

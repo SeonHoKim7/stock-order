@@ -56,7 +56,7 @@ class PurchaseOrderTest {
         assertThat(order.getTotalAmount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(order.getOrderedAt()).isNotNull();
         assertThat(order.getApprover()).isNull();
-        assertThat(order.getApprovedAt()).isNull();
+        assertThat(order.getProcessedAt()).isNull();
         assertThat(order.getItems()).isEmpty();
     }
 
@@ -150,7 +150,7 @@ class PurchaseOrderTest {
     class Approve {
 
         @Test
-        @DisplayName("PENDING 상태에서 승인 시 APPROVED 상태로 전이되고 approver, approvedAt이 설정된다")
+        @DisplayName("PENDING 상태에서 승인 시 APPROVED 상태로 전이되고 approver, processedAt이 설정된다")
         void approve_pendingOrder_changesStatusToApproved() {
             PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
 
@@ -158,7 +158,7 @@ class PurchaseOrderTest {
 
             assertThat(order.getStatus()).isEqualTo(OrderStatus.APPROVED);
             assertThat(order.getApprover()).isEqualTo(approver);
-            assertThat(order.getApprovedAt()).isNotNull();
+            assertThat(order.getProcessedAt()).isNotNull();
         }
 
         @Test
@@ -181,15 +181,16 @@ class PurchaseOrderTest {
     class Reject {
 
         @Test
-        @DisplayName("PENDING 상태에서 반려 시 REJECTED 상태로 전이되고 approver, approvedAt이 설정된다")
+        @DisplayName("PENDING 상태에서 반려 시 REJECTED 상태로 전이되고 approver, processedAt, rejectReason이 설정된다")
         void reject_pendingOrder_changesStatusToRejected() {
             PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
 
-            order.reject(approver);
+            order.reject(approver, "단가 재협상 필요");
 
             assertThat(order.getStatus()).isEqualTo(OrderStatus.REJECTED);
             assertThat(order.getApprover()).isEqualTo(approver);
-            assertThat(order.getApprovedAt()).isNotNull();
+            assertThat(order.getProcessedAt()).isNotNull();
+            assertThat(order.getRejectReason()).isEqualTo("단가 재협상 필요");
         }
 
         @Test
@@ -198,7 +199,7 @@ class PurchaseOrderTest {
             PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
             order.approve(approver);
 
-            assertThatThrownBy(() -> order.reject(approver))
+            assertThatThrownBy(() -> order.reject(approver, "사유"))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.ORDER_STATUS_CANNOT_REJECT));
