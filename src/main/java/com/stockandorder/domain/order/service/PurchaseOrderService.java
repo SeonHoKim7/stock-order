@@ -73,6 +73,38 @@ public class PurchaseOrderService {
         return PurchaseOrderResponse.from(order);
     }
 
+    public void approveOrder(Long orderId, Long approverId) {
+        PurchaseOrder order = findById(orderId);
+        Member approver = findMember(approverId);
+        validateNotSelfApproval(order, approverId);
+        order.approve(approver);
+    }
+
+    public void rejectOrder(Long orderId, Long approverId, String rejectReason) {
+        PurchaseOrder order = findById(orderId);
+        Member approver = findMember(approverId);
+        validateNotSelfApproval(order, approverId);
+        order.reject(approver, rejectReason);
+    }
+
+    public void cancelOrder(Long orderId, Long requesterId) {
+        PurchaseOrder order = findById(orderId);
+        validateRequester(order, requesterId);
+        order.cancel();
+    }
+
+    private void validateNotSelfApproval(PurchaseOrder order, Long approverId) {
+        if (order.getRequester().getMemberId().equals(approverId)) {
+            throw new BusinessException(ErrorCode.ORDER_SELF_APPROVAL);
+        }
+    }
+
+    private void validateRequester(PurchaseOrder order, Long requesterId) {
+        if (!order.getRequester().getMemberId().equals(requesterId)) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_REQUESTER);
+        }
+    }
+
     private String generateOrderNumber() {
         String prefix = "PO-" + LocalDate.now().format(DATE_FORMAT) + "-";
         return purchaseOrderRepository.findMaxOrderNumberByPrefix(prefix)

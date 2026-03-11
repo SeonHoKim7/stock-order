@@ -24,8 +24,6 @@ public class QPurchaseOrder extends EntityPathBase<PurchaseOrder> {
 
     public final com.stockandorder.global.common.QBaseTimeEntity _super = new com.stockandorder.global.common.QBaseTimeEntity(this);
 
-    public final DateTimePath<java.time.LocalDateTime> approvedAt = createDateTime("approvedAt", java.time.LocalDateTime.class);
-
     public final com.stockandorder.domain.member.entity.QMember approver;
 
     //inherited
@@ -40,6 +38,10 @@ public class QPurchaseOrder extends EntityPathBase<PurchaseOrder> {
     public final NumberPath<Long> orderId = createNumber("orderId", Long.class);
 
     public final StringPath orderNumber = createString("orderNumber");
+
+    public final DateTimePath<java.time.LocalDateTime> processedAt = createDateTime("processedAt", java.time.LocalDateTime.class);
+
+    public final StringPath rejectReason = createString("rejectReason");
 
     public final com.stockandorder.domain.member.entity.QMember requester;
 

@@ -43,6 +43,8 @@ public enum ErrorCode {
     ORDER_STATUS_CANNOT_REJECT(HttpStatus.BAD_REQUEST, "대기 상태의 발주만 반려할 수 있습니다."),
     ORDER_STATUS_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "대기 상태의 발주만 취소할 수 있습니다."),
     ORDER_CANNOT_MODIFY(HttpStatus.BAD_REQUEST, "승인 이후의 발주는 수정하거나 삭제할 수 없습니다."),
+    ORDER_SELF_APPROVAL(HttpStatus.BAD_REQUEST, "본인이 요청한 발주는 본인이 승인/반려할 수 없습니다."),
+    ORDER_NOT_REQUESTER(HttpStatus.FORBIDDEN, "발주 요청자만 취소할 수 있습니다."),
     ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 발주 항목입니다."),
 
     // Inbound

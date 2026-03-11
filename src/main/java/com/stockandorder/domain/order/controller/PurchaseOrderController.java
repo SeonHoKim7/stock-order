@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -60,5 +61,35 @@ public class PurchaseOrderController {
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("order", purchaseOrderService.getOrder(id));
         return "order/detail";
+    }
+
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PostMapping("/{id}/approve")
+    public String approve(@PathVariable Long id,
+                          @AuthenticationPrincipal CustomUserDetails userDetails,
+                          RedirectAttributes redirectAttributes) {
+        purchaseOrderService.approveOrder(id, userDetails.getMemberId());
+        redirectAttributes.addFlashAttribute("message", "발주가 승인되었습니다.");
+        return "redirect:/orders/" + id;
+    }
+
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PostMapping("/{id}/reject")
+    public String reject(@PathVariable Long id,
+                         @RequestParam String rejectReason,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
+                         RedirectAttributes redirectAttributes) {
+        purchaseOrderService.rejectOrder(id, userDetails.getMemberId(), rejectReason);
+        redirectAttributes.addFlashAttribute("message", "발주가 반려되었습니다.");
+        return "redirect:/orders/" + id;
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancel(@PathVariable Long id,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
+                         RedirectAttributes redirectAttributes) {
+        purchaseOrderService.cancelOrder(id, userDetails.getMemberId());
+        redirectAttributes.addFlashAttribute("message", "발주가 취소되었습니다.");
+        return "redirect:/orders/" + id;
     }
 }

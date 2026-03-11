@@ -54,7 +54,10 @@ public class PurchaseOrder extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime orderedAt;
 
-    private LocalDateTime approvedAt;
+    private LocalDateTime processedAt;
+
+    @Column(length = 500)
+    private String rejectReason;
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseOrderItem> items = new ArrayList<>();
@@ -88,14 +91,15 @@ public class PurchaseOrder extends BaseTimeEntity {
         validatePendingStatus(ErrorCode.ORDER_STATUS_CANNOT_APPROVE);
         this.status = OrderStatus.APPROVED;
         this.approver = approver;
-        this.approvedAt = LocalDateTime.now();
+        this.processedAt = LocalDateTime.now();
     }
 
-    public void reject(Member approver) {
+    public void reject(Member approver, String rejectReason) {
         validatePendingStatus(ErrorCode.ORDER_STATUS_CANNOT_REJECT);
         this.status = OrderStatus.REJECTED;
         this.approver = approver;
-        this.approvedAt = LocalDateTime.now();
+        this.rejectReason = rejectReason;
+        this.processedAt = LocalDateTime.now();
     }
 
     public void cancel() {

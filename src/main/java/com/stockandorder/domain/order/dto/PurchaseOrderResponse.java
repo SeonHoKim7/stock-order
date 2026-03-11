@@ -21,7 +21,8 @@ public class PurchaseOrderResponse {
     private final BigDecimal totalAmount;
     private final String note;
     private final LocalDateTime orderedAt;
-    private final LocalDateTime approvedAt;
+    private final LocalDateTime processedAt;
+    private final String rejectReason;
     private final List<ItemResponse> items;
 
     private PurchaseOrderResponse(PurchaseOrder order) {
@@ -35,7 +36,8 @@ public class PurchaseOrderResponse {
         this.totalAmount = order.getTotalAmount();
         this.note = order.getNote();
         this.orderedAt = order.getOrderedAt();
-        this.approvedAt = order.getApprovedAt();
+        this.processedAt = order.getProcessedAt();
+        this.rejectReason = order.getRejectReason();
         this.items = order.getItems().stream()
                 .map(ItemResponse::new)
                 .toList();
