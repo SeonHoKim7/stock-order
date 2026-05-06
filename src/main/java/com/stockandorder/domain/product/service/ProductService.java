@@ -7,6 +7,8 @@ import com.stockandorder.domain.product.dto.ProductResponse;
 import com.stockandorder.domain.product.dto.ProductUpdateRequest;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.product.repository.ProductRepository;
+import com.stockandorder.domain.stock.entity.Stock;
+import com.stockandorder.domain.stock.repository.StockRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final StockRepository stockRepository;
 
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(String keyword, Long categoryId, Pageable pageable) {
@@ -41,7 +44,7 @@ public class ProductService {
             throw new BusinessException(ErrorCode.PRODUCT_CODE_DUPLICATE);
         }
         Category category = resolveCategory(request.getCategoryId());
-        productRepository.save(Product.create(
+        Product product = productRepository.save(Product.create(
                 request.getProductCode(),
                 request.getName(),
                 category,
@@ -50,6 +53,8 @@ public class ProductService {
                 request.getSafetyStock(),
                 request.getDescription()
         ));
+        // Stock 항상 존재 불변식 유지. 상품 생성과 동시에 quantity=0 재고 레코드 생성
+        stockRepository.save(Stock.create(product));
     }
 
     public void updateProduct(Long productId, ProductUpdateRequest request) {

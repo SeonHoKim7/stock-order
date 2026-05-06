@@ -36,5 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
+### QueryDSL (annotation processor generated) ###
+src/main/generated/
+
 ### Secrets ###
 secret-application.yml

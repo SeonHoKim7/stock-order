@@ -7,11 +7,14 @@ import com.stockandorder.domain.product.dto.ProductResponse;
 import com.stockandorder.domain.product.dto.ProductUpdateRequest;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.product.repository.ProductRepository;
+import com.stockandorder.domain.stock.entity.Stock;
+import com.stockandorder.domain.stock.repository.StockRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,6 +44,9 @@ class ProductServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private StockRepository stockRepository;
 
     // searchProducts
 
@@ -119,10 +125,28 @@ class ProductServiceTest {
         Category category = Category.create("전자기기", null);
         given(productRepository.existsByProductCode("PRD-00001")).willReturn(false);
         given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productRepository.save(any(Product.class))).willAnswer(inv -> inv.getArgument(0));
 
         productService.createProduct(request);
 
         then(productRepository).should().save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("상품 생성 시 quantity=0 재고 레코드도 함께 저장된다 (Stock 항상 존재 불변식)")
+    void createProduct_alsoCreatesStockWithZeroQuantity() {
+        ProductCreateRequest request = createRequest("PRD-00001", "노트북", 1L);
+        Category category = Category.create("전자기기", null);
+        given(productRepository.existsByProductCode("PRD-00001")).willReturn(false);
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productRepository.save(any(Product.class))).willAnswer(inv -> inv.getArgument(0));
+
+        productService.createProduct(request);
+
+        ArgumentCaptor<Stock> captor = ArgumentCaptor.forClass(Stock.class);
+        then(stockRepository).should().save(captor.capture());
+        assertThat(captor.getValue().getQuantity()).isZero();
+        assertThat(captor.getValue().getProduct()).isNotNull();
     }
 
     @Test
