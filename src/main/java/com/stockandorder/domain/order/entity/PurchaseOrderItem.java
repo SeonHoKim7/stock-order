@@ -1,6 +1,8 @@
 package com.stockandorder.domain.order.entity;
 
 import com.stockandorder.domain.product.entity.Product;
+import com.stockandorder.global.exception.BusinessException;
+import com.stockandorder.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,5 +48,16 @@ public class PurchaseOrderItem {
 
     void setPurchaseOrder(PurchaseOrder purchaseOrder) {
         this.purchaseOrder = purchaseOrder;
+    }
+
+    /**
+     * 입고 수량 누적. 초과 입고 금지 불변식(누적 입고량 ≤ 발주 수량)을 엔티티가 스스로 보호한다.
+     * receivedQuantity를 변경하는 유일한 통로이므로 어디서 호출하든 검증을 우회할 수 없다.
+     */
+    public void receive(int quantity) {
+        if (this.receivedQuantity + quantity > this.quantity) {
+            throw new BusinessException(ErrorCode.INBOUND_QUANTITY_EXCEEDED);
+        }
+        this.receivedQuantity += quantity;
     }
 }

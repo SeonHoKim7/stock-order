@@ -234,4 +234,114 @@ class PurchaseOrderTest {
                             .isEqualTo(ErrorCode.ORDER_STATUS_CANNOT_CANCEL));
         }
     }
+
+    // validateReceivable (입고 가능 상태 검증)
+
+    @Nested
+    @DisplayName("validateReceivable")
+    class ValidateReceivable {
+
+        @Test
+        @DisplayName("APPROVED 상태면 예외 없이 통과한다")
+        void validateReceivable_approved_passes() {
+            PurchaseOrder order = approvedOrder();
+
+            order.validateReceivable();
+        }
+
+        @Test
+        @DisplayName("IN_PROGRESS(부분 입고 중) 상태면 예외 없이 통과한다")
+        void validateReceivable_inProgress_passes() {
+            PurchaseOrder order = approvedOrder();
+            order.getItems().get(0).receive(5); // 10 중 5만 입고
+            order.refreshStatusByReceipt();
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+
+            order.validateReceivable();
+        }
+
+        @Test
+        @DisplayName("PENDING 상태면 INBOUND_ORDER_NOT_APPROVED 예외가 발생한다")
+        void validateReceivable_pending_throwsException() {
+            PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
+            order.addItem(PurchaseOrderItem.create(product1, 10, BigDecimal.valueOf(10000)));
+
+            assertThatThrownBy(order::validateReceivable)
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.INBOUND_ORDER_NOT_APPROVED));
+        }
+
+        @Test
+        @DisplayName("COMPLETED 상태면 INBOUND_ORDER_NOT_APPROVED 예외가 발생한다")
+        void validateReceivable_completed_throwsException() {
+            PurchaseOrder order = approvedOrder();
+            order.getItems().get(0).receive(10); // 전량 입고
+            order.refreshStatusByReceipt();
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+
+            assertThatThrownBy(order::validateReceivable)
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.INBOUND_ORDER_NOT_APPROVED));
+        }
+    }
+
+    // refreshStatusByReceipt (입고 누적 결과로 발주 상태 재계산)
+
+    @Nested
+    @DisplayName("refreshStatusByReceipt")
+    class RefreshStatusByReceipt {
+
+        @Test
+        @DisplayName("모든 항목이 전량 입고되면 COMPLETED로 전이된다")
+        void refresh_allItemsFullyReceived_becomesCompleted() {
+            PurchaseOrder order = approvedTwoItemOrder();
+            order.getItems().get(0).receive(10);
+            order.getItems().get(1).receive(20);
+
+            order.refreshStatusByReceipt();
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+        }
+
+        @Test
+        @DisplayName("일부 항목만 입고되면 IN_PROGRESS로 전이된다")
+        void refresh_partiallyReceived_becomesInProgress() {
+            PurchaseOrder order = approvedTwoItemOrder();
+            order.getItems().get(0).receive(10); // 첫 항목만 전량
+            // 둘째 항목은 미입고
+
+            order.refreshStatusByReceipt();
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+        }
+
+        @Test
+        @DisplayName("한 항목이라도 부분 입고면 IN_PROGRESS로 전이된다")
+        void refresh_oneItemPartiallyReceived_becomesInProgress() {
+            PurchaseOrder order = approvedOrder();
+            order.getItems().get(0).receive(7); // 10 중 7
+
+            order.refreshStatusByReceipt();
+
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+        }
+    }
+
+    private PurchaseOrder approvedOrder() {
+        PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
+        order.addItem(PurchaseOrderItem.create(product1, 10, BigDecimal.valueOf(10000)));
+        order.approve(approver);
+        return order;
+    }
+
+    // 항목 추가는 PENDING에서만 가능하므로 승인 전에 두 항목을 모두 채운다.
+    private PurchaseOrder approvedTwoItemOrder() {
+        PurchaseOrder order = PurchaseOrder.create("PO-20260305-001", supplier, requester, null);
+        order.addItem(PurchaseOrderItem.create(product1, 10, BigDecimal.valueOf(10000)));
+        order.addItem(PurchaseOrderItem.create(product2, 20, BigDecimal.valueOf(5000)));
+        order.approve(approver);
+        return order;
+    }
 }

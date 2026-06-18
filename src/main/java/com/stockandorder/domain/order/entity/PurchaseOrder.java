@@ -56,6 +56,10 @@ public class PurchaseOrder extends BaseTimeEntity {
 
     private LocalDateTime processedAt;
 
+    // 입고 동시성 제어용 낙관적 락. 발주는 저경합이라 비관적 락 대신 @Version + 재시도로 처리한다.
+    @Version
+    private Long version;
+
     @Column(length = 500)
     private String rejectReason;
 
@@ -109,6 +113,23 @@ public class PurchaseOrder extends BaseTimeEntity {
 
     public void changeOrderNumber(String orderNumber) {
         this.orderNumber = orderNumber;
+    }
+
+    /** 입고 가능한 발주인지 검증. 승인(APPROVED) 또는 부분 입고 진행 중(IN_PROGRESS)만 허용. */
+    public void validateReceivable() {
+        if (this.status != OrderStatus.APPROVED && this.status != OrderStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.INBOUND_ORDER_NOT_APPROVED);
+        }
+    }
+
+    /**
+     * 입고 누적 결과로 발주 상태를 재계산한다. 상태는 항목별이 아니라 발주서 전체 하나.
+     * 모든 항목이 발주 수량만큼 입고되면 COMPLETED, 하나라도 덜 차면 IN_PROGRESS.
+     */
+    public void refreshStatusByReceipt() {
+        boolean allReceived = items.stream()
+                .allMatch(item -> item.getReceivedQuantity() == item.getQuantity());
+        this.status = allReceived ? OrderStatus.COMPLETED : OrderStatus.IN_PROGRESS;
     }
 
     private void validatePendingStatus(ErrorCode errorCode) {
