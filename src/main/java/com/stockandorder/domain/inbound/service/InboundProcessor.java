@@ -9,12 +9,7 @@ import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.order.entity.PurchaseOrder;
 import com.stockandorder.domain.order.entity.PurchaseOrderItem;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
-import com.stockandorder.domain.product.entity.Product;
-import com.stockandorder.domain.stock.entity.Stock;
-import com.stockandorder.domain.stock.entity.StockLog;
-import com.stockandorder.domain.stock.enums.StockChangeType;
-import com.stockandorder.domain.stock.repository.StockLogRepository;
-import com.stockandorder.domain.stock.repository.StockRepository;
+import com.stockandorder.domain.stock.service.StockService;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +38,7 @@ public class InboundProcessor {
     private final InboundRepository inboundRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final MemberRepository memberRepository;
-    private final StockRepository stockRepository;
-    private final StockLogRepository stockLogRepository;
+    private final StockService stockService;
 
     @Transactional
     public Long createOnce(InboundCreateRequest request, Long processorId) {
@@ -57,6 +51,8 @@ public class InboundProcessor {
         Member processor = findMember(processorId);
 
         // 2. 입고 항목 구성. 각 입고 항목은 이 발주의 발주 항목을 가리켜야 한다(A-3 검증).
+        //    H-2: 한 입고서에 같은 발주 항목을 두 줄로 적는 것은 수기 입력 실수로 보고 차단한다.
+        validateNoDuplicateOrderItem(request.getItems());
         List<InboundItem> inboundItems = new ArrayList<>();
         for (InboundCreateRequest.ItemRequest itemReq : request.getItems()) {
             PurchaseOrderItem orderItem = findOrderItem(order, itemReq.getOrderItemId());
@@ -71,29 +67,20 @@ public class InboundProcessor {
         inboundRepository.save(inbound);
         inboundRepository.flush();
 
-        // 4. 재고 반영. 데드락 방지를 위해 재고 락은 항상 product_id 오름차순으로 획득한다.
+        // 4. 재고 반영. 재고 락은 StockService 안에서 잡히므로(G-1), 데드락 방지를 위해
+        //    productId 오름차순으로 호출해 락 획득 순서를 고정한다.
         List<InboundItem> lockOrder = inbound.getItems().stream()
                 .sorted(Comparator.comparing(it -> it.getOrderItem().getProduct().getProductId()))
                 .toList();
         for (InboundItem item : lockOrder) {
             PurchaseOrderItem orderItem = item.getOrderItem();
-            Product product = orderItem.getProduct();
             int quantity = item.getQuantity();
 
-            // C-1: 초과 입고 금지 불변식 + receivedQuantity 누적(발주 항목 엔티티가 스스로 보호)
+            // C-1/H-3: 초과 입고(완료 항목 포함) 금지 + receivedQuantity 누적(발주 항목 엔티티가 스스로 보호)
             orderItem.receive(quantity);
 
-            // E-1: 재고는 핫 로우라 비관적 락으로 Lost Update 방지
-            Stock stock = stockRepository.findByProductIdForUpdate(product.getProductId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
-            int before = stock.getQuantity();
-            stock.increase(quantity);
-            int after = stock.getQuantity();
-
-            // D-2: 재고 변동 이력 기록. referenceId에 방금 확보한 inbound_id 주입.
-            StockLog log = StockLog.of(product, StockChangeType.INBOUND,
-                    quantity, before, after, inbound.getInboundId(), null);
-            stockLogRepository.save(log);
+            // G-1/I-1: 재고 증가 + StockLog 기록(referenceId=inbound_id)을 StockService가 원자적으로 처리
+            stockService.increase(orderItem.getProduct().getProductId(), quantity, inbound.getInboundId());
         }
 
         // 5. C-2: 입고 누적 결과로 발주 상태 재계산(전량 입고면 COMPLETED, 아니면 IN_PROGRESS)
@@ -111,6 +98,17 @@ public class InboundProcessor {
                     return prefix + String.format("%03d", seq + 1);
                 })
                 .orElse(prefix + "001");
+    }
+
+    // H-2: 한 입고 요청 안에 같은 발주 항목(orderItemId)이 두 번 이상 나타나면 차단한다.
+    private void validateNoDuplicateOrderItem(List<InboundCreateRequest.ItemRequest> items) {
+        long distinct = items.stream()
+                .map(InboundCreateRequest.ItemRequest::getOrderItemId)
+                .distinct()
+                .count();
+        if (distinct != items.size()) {
+            throw new BusinessException(ErrorCode.INBOUND_DUPLICATE_ORDER_ITEM);
+        }
     }
 
     private PurchaseOrderItem findOrderItem(PurchaseOrder order, Long orderItemId) {

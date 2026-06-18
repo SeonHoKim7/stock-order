@@ -89,5 +89,17 @@ class PurchaseOrderItemTest {
 
             assertThat(item.getReceivedQuantity()).isEqualTo(8);
         }
+
+        @Test
+        @DisplayName("H-3: 이미 전량 입고된 항목에 다시 입고하면 INBOUND_ITEM_ALREADY_COMPLETED 예외가 발생한다")
+        void receive_alreadyFullyReceived_throwsAlreadyCompleted() {
+            PurchaseOrderItem item = newItem(10);
+            item.receive(10); // 전량 입고 완료
+
+            assertThatThrownBy(() -> item.receive(1))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.INBOUND_ITEM_ALREADY_COMPLETED));
+        }
     }
 }

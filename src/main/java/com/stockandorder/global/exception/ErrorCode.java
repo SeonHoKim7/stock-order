@@ -51,6 +51,8 @@ public enum ErrorCode {
     INBOUND_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 입고 내역입니다."),
     INBOUND_ORDER_NOT_APPROVED(HttpStatus.BAD_REQUEST, "승인된 발주에 대해서만 입고 처리를 할 수 있습니다."),
     INBOUND_QUANTITY_EXCEEDED(HttpStatus.BAD_REQUEST, "입고 수량이 발주 잔여 수량을 초과했습니다."),
+    INBOUND_ITEM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 전량 입고 완료된 항목입니다."),
+    INBOUND_DUPLICATE_ORDER_ITEM(HttpStatus.BAD_REQUEST, "같은 발주 항목을 중복으로 입력할 수 없습니다."),
 
     // Outbound
     OUTBOUND_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 출고 내역입니다."),

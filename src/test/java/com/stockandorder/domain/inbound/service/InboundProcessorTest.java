@@ -11,11 +11,7 @@ import com.stockandorder.domain.order.entity.PurchaseOrderItem;
 import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
 import com.stockandorder.domain.product.entity.Product;
-import com.stockandorder.domain.stock.entity.Stock;
-import com.stockandorder.domain.stock.entity.StockLog;
-import com.stockandorder.domain.stock.enums.StockChangeType;
-import com.stockandorder.domain.stock.repository.StockLogRepository;
-import com.stockandorder.domain.stock.repository.StockRepository;
+import com.stockandorder.domain.stock.service.StockService;
 import com.stockandorder.domain.supplier.entity.Supplier;
 import com.stockandorder.domain.supplier.enums.SupplierType;
 import com.stockandorder.global.exception.BusinessException;
@@ -26,6 +22,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,9 +55,7 @@ class InboundProcessorTest {
     @Mock
     private MemberRepository memberRepository;
     @Mock
-    private StockRepository stockRepository;
-    @Mock
-    private StockLogRepository stockLogRepository;
+    private StockService stockService;
 
     private static final long ORDER_ID = 1L;
     private static final long PROCESSOR_ID = 5L;
@@ -73,8 +69,6 @@ class InboundProcessorTest {
     private Member processor;
     private PurchaseOrderItem orderItem1;
     private PurchaseOrderItem orderItem2;
-    private Stock stock1;
-    private Stock stock2;
 
     @BeforeEach
     void setUp() {
@@ -102,9 +96,6 @@ class InboundProcessorTest {
         ReflectionTestUtils.setField(orderItem1, "orderItemId", ORDER_ITEM_1_ID);
         ReflectionTestUtils.setField(orderItem2, "orderItemId", ORDER_ITEM_2_ID);
         order.approve(processor);
-
-        stock1 = Stock.create(product1);
-        stock2 = Stock.create(product2);
     }
 
     // 입고 처리 시 InboundRepository.save가 호출되면 inboundId를 부여(실제 IDENTITY 채번 흉내)
@@ -121,14 +112,12 @@ class InboundProcessorTest {
     class HappyPath {
 
         @Test
-        @DisplayName("전량 입고 시 재고 증가·이력 기록·발주 항목 누적이 일어나고 발주는 COMPLETED가 된다")
-        void createOnce_fullReceipt_updatesStockAndLogsAndCompletesOrder() {
+        @DisplayName("전량 입고 시 발주 항목 누적·재고 위임이 일어나고 발주는 COMPLETED가 된다")
+        void createOnce_fullReceipt_updatesStockAndCompletesOrder() {
             given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
             given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
             given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
             givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.of(stock1));
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_2_ID)).willReturn(Optional.of(stock2));
 
             InboundCreateRequest request = request(
                     item(ORDER_ITEM_1_ID, 10),
@@ -137,9 +126,9 @@ class InboundProcessorTest {
             Long inboundId = inboundProcessor.createOnce(request, PROCESSOR_ID);
 
             assertThat(inboundId).isEqualTo(GENERATED_INBOUND_ID);
-            // 재고 반영
-            assertThat(stock1.getQuantity()).isEqualTo(10);
-            assertThat(stock2.getQuantity()).isEqualTo(20);
+            // 재고 반영은 StockService에 위임(referenceId = 방금 채번된 inbound_id)
+            then(stockService).should().increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID);
+            then(stockService).should().increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID);
             // 발주 항목 누적 입고량
             assertThat(orderItem1.getReceivedQuantity()).isEqualTo(10);
             assertThat(orderItem2.getReceivedQuantity()).isEqualTo(20);
@@ -148,22 +137,41 @@ class InboundProcessorTest {
         }
 
         @Test
-        @DisplayName("부분 입고 시 발주는 IN_PROGRESS가 된다")
+        @DisplayName("부분 입고 시 재고를 위임하고 발주는 IN_PROGRESS가 된다")
         void createOnce_partialReceipt_orderInProgress() {
             given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
             given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
             given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
             givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.of(stock1));
 
             // 첫 항목만 일부 입고
             InboundCreateRequest request = request(item(ORDER_ITEM_1_ID, 4));
 
             inboundProcessor.createOnce(request, PROCESSOR_ID);
 
+            then(stockService).should().increase(PRODUCT_1_ID, 4, GENERATED_INBOUND_ID);
             assertThat(orderItem1.getReceivedQuantity()).isEqualTo(4);
-            assertThat(stock1.getQuantity()).isEqualTo(4);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+        }
+
+        @Test
+        @DisplayName("데드락 방지를 위해 재고 증가는 productId 오름차순으로 호출된다")
+        void createOnce_callsStockServiceInProductIdOrder() {
+            given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
+            given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
+            given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
+            givenSaveAssignsId();
+
+            // 요청은 productId 역순(2 → 1)으로 들어와도 호출은 오름차순(1 → 2)이어야 한다
+            InboundCreateRequest request = request(
+                    item(ORDER_ITEM_2_ID, 20),
+                    item(ORDER_ITEM_1_ID, 10));
+
+            inboundProcessor.createOnce(request, PROCESSOR_ID);
+
+            InOrder ordered = inOrder(stockService);
+            ordered.verify(stockService).increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID);
+            ordered.verify(stockService).increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID);
         }
 
         @Test
@@ -173,7 +181,6 @@ class InboundProcessorTest {
             given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
             given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
             givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.of(stock1));
 
             inboundProcessor.createOnce(request(item(ORDER_ITEM_1_ID, 1)), PROCESSOR_ID);
 
@@ -194,34 +201,12 @@ class InboundProcessorTest {
             given(inboundRepository.findMaxInboundNumberByPrefix(anyString()))
                     .willReturn(Optional.of(prefix + "007"));
             givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.of(stock1));
 
             inboundProcessor.createOnce(request(item(ORDER_ITEM_1_ID, 1)), PROCESSOR_ID);
 
             ArgumentCaptor<Inbound> captor = ArgumentCaptor.forClass(Inbound.class);
             then(inboundRepository).should().save(captor.capture());
             assertThat(captor.getValue().getInboundNumber()).isEqualTo(prefix + "008");
-        }
-
-        @Test
-        @DisplayName("재고 변동 이력(StockLog)이 INBOUND 타입으로 inbound_id를 참조하여 기록된다")
-        void createOnce_recordsStockLog() {
-            given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
-            given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
-            given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
-            givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.of(stock1));
-
-            inboundProcessor.createOnce(request(item(ORDER_ITEM_1_ID, 6)), PROCESSOR_ID);
-
-            ArgumentCaptor<StockLog> captor = ArgumentCaptor.forClass(StockLog.class);
-            then(stockLogRepository).should().save(captor.capture());
-            StockLog log = captor.getValue();
-            assertThat(log.getChangeType()).isEqualTo(StockChangeType.INBOUND);
-            assertThat(log.getChangeQuantity()).isEqualTo(6);
-            assertThat(log.getBeforeQuantity()).isZero();
-            assertThat(log.getAfterQuantity()).isEqualTo(6);
-            assertThat(log.getReferenceId()).isEqualTo(GENERATED_INBOUND_ID);
         }
     }
 
@@ -270,6 +255,23 @@ class InboundProcessorTest {
         }
 
         @Test
+        @DisplayName("H-2: 한 입고서에 같은 발주 항목을 중복으로 적으면 INBOUND_DUPLICATE_ORDER_ITEM 예외가 발생한다")
+        void createOnce_duplicateOrderItem_throws() {
+            given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
+            given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
+
+            InboundCreateRequest request = request(
+                    item(ORDER_ITEM_1_ID, 3),
+                    item(ORDER_ITEM_1_ID, 4)); // 같은 발주 항목을 두 줄로
+
+            assertThatThrownBy(() -> inboundProcessor.createOnce(request, PROCESSOR_ID))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.INBOUND_DUPLICATE_ORDER_ITEM));
+            then(inboundRepository).should(never()).save(any());
+        }
+
+        @Test
         @DisplayName("이 발주에 속하지 않은 발주 항목을 가리키면 ORDER_ITEM_NOT_FOUND 예외가 발생한다")
         void createOnce_orderItemNotFound_throws() {
             given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
@@ -295,21 +297,23 @@ class InboundProcessorTest {
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.INBOUND_QUANTITY_EXCEEDED));
+            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any());
         }
 
         @Test
-        @DisplayName("상품의 재고 레코드가 없으면 STOCK_NOT_FOUND 예외가 발생한다")
-        void createOnce_stockNotFound_throws() {
+        @DisplayName("H-3: 이미 전량 입고된 항목에 다시 입고하면 INBOUND_ITEM_ALREADY_COMPLETED 예외가 발생한다")
+        void createOnce_alreadyCompletedItem_throws() {
+            orderItem1.receive(10); // 발주 수량 10을 모두 입고 완료
             given(purchaseOrderRepository.findForReceipt(ORDER_ID)).willReturn(Optional.of(order));
             given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
             given(inboundRepository.findMaxInboundNumberByPrefix(anyString())).willReturn(Optional.empty());
             givenSaveAssignsId();
-            given(stockRepository.findByProductIdForUpdate(PRODUCT_1_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> inboundProcessor.createOnce(request(item(ORDER_ITEM_1_ID, 1)), PROCESSOR_ID))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
-                            .isEqualTo(ErrorCode.STOCK_NOT_FOUND));
+                            .isEqualTo(ErrorCode.INBOUND_ITEM_ALREADY_COMPLETED));
+            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any());
         }
     }
 
