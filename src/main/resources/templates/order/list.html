@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>발주 관리 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>발주 관리</h2>
+
+<a href="/dashboard">대시보드</a>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<!-- 검색 폼 -->
+<form method="get" th:action="@{/orders}">
+    <select name="status">
+        <option value="">전체 상태</option>
+        <option th:each="s : ${T(com.stockandorder.domain.order.enums.OrderStatus).values()}"
+                th:value="${s.name()}"
+                th:text="${s.label}"
+                th:selected="${condition.status != null and condition.status.name() == s.name()}"></option>
+    </select>
+    <select name="supplierId">
+        <option value="">전체 거래처</option>
+        <option th:each="sup : ${suppliers}"
+                th:value="${sup.supplierId}"
+                th:text="${sup.name}"
+                th:selected="${condition.supplierId != null and condition.supplierId == sup.supplierId}"></option>
+    </select>
+    <input type="date" name="startDate" th:value="${condition.startDate}">
+    ~
+    <input type="date" name="endDate" th:value="${condition.endDate}">
+    <button type="submit">검색</button>
+    <a th:href="@{/orders}">초기화</a>
+</form>
+
+<a href="/orders/new">발주 등록</a>
+
+<!-- 발주 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>발주번호</th>
+            <th>거래처</th>
+            <th>요청자</th>
+            <th>상태</th>
+            <th>총액</th>
+            <th>발주일</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="order : ${orders}">
+            <td><a th:href="@{/orders/{id}(id=${order.orderId})}" th:text="${order.orderNumber}"></a></td>
+            <td th:text="${order.supplierName}"></td>
+            <td th:text="${order.requesterName}"></td>
+            <td th:text="${order.statusLabel}"></td>
+            <td th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT')}"></td>
+            <td th:text="${#temporals.format(order.orderedAt, 'yyyy-MM-dd')}"></td>
+        </tr>
+        <tr th:if="${orders.isEmpty()}">
+            <td colspan="6">발주 내역이 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${orders.totalPages > 1}">
+    <a th:if="${!orders.first}"
+       th:href="@{/orders(status=${condition.status}, supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${orders.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, orders.totalPages - 1)}">
+        <a th:if="${i != orders.number}"
+           th:href="@{/orders(status=${condition.status}, supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == orders.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!orders.last}"
+       th:href="@{/orders(status=${condition.status}, supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${orders.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${orders.totalElements}"></span>건</p>
+
+</body>
+</html>

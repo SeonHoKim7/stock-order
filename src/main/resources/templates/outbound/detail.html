@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${outbound.outboundNumber} + ' - StockAndOrder'">출고 상세</title>
+</head>
+<body>
+
+<h2>출고 상세</h2>
+
+<a href="/outbounds">목록으로</a>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<table border="1">
+    <tr><th>출고번호</th><td th:text="${outbound.outboundNumber}"></td></tr>
+    <tr><th>판매처</th><td th:text="${outbound.supplierName}"></td></tr>
+    <tr><th>처리자</th><td th:text="${outbound.processorName}"></td></tr>
+    <tr><th>매출액</th><td th:text="${#numbers.formatDecimal(outbound.totalAmount, 1, 'COMMA', 0, 'POINT')}"></td></tr>
+    <tr><th>출고일</th><td th:text="${#temporals.format(outbound.outboundDate, 'yyyy-MM-dd')}"></td></tr>
+    <tr><th>등록일시</th><td th:text="${#temporals.format(outbound.createdAt, 'yyyy-MM-dd HH:mm')}"></td></tr>
+    <tr><th>비고</th><td th:text="${outbound.note != null ? outbound.note : '-'}"></td></tr>
+</table>
+
+<h3>출고 항목</h3>
+<table border="1">
+    <thead>
+        <tr>
+            <th>상품코드</th>
+            <th>상품명</th>
+            <th>수량</th>
+            <th>매출 단가</th>
+            <th>금액</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="item : ${outbound.items}">
+            <td th:text="${item.productCode}"></td>
+            <td th:text="${item.productName}"></td>
+            <td th:text="${item.quantity}"></td>
+            <td th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 0, 'POINT')}"></td>
+            <td th:text="${#numbers.formatDecimal(item.lineAmount, 1, 'COMMA', 0, 'POINT')}"></td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

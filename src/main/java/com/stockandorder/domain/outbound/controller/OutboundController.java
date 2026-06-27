@@ -20,6 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/outbounds")
@@ -41,7 +43,9 @@ public class OutboundController {
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("form", new OutboundCreateRequest());
+        OutboundCreateRequest form = new OutboundCreateRequest();
+        form.setOutboundDate(LocalDate.now());
+        model.addAttribute("form", form);
         model.addAttribute("suppliers", supplierService.getActiveSuppliers());
         model.addAttribute("products", productService.searchProducts(
                 null, null, PageRequest.of(0, 1000, Sort.by("name"))).getContent());

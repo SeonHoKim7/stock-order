@@ -8,6 +8,7 @@ import com.stockandorder.domain.supplier.service.SupplierService;
 import com.stockandorder.global.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -40,6 +41,7 @@ public class PurchaseOrderController {
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("form", new PurchaseOrderCreateRequest());
+        addFormReferenceData(model);
         return "order/create-form";
     }
 
@@ -50,6 +52,7 @@ public class PurchaseOrderController {
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
+            addFormReferenceData(model);
             return "order/create-form";
         }
         Long orderId = purchaseOrderService.createOrder(form, userDetails.getMemberId());
@@ -91,5 +94,12 @@ public class PurchaseOrderController {
         purchaseOrderService.cancelOrder(id, userDetails.getMemberId());
         redirectAttributes.addFlashAttribute("message", "발주가 취소되었습니다.");
         return "redirect:/orders/" + id;
+    }
+
+    // 등록 폼의 거래처/상품 선택 드롭다운용 데이터. 검증 실패 재표시 시에도 다시 채워야 한다.
+    private void addFormReferenceData(Model model) {
+        model.addAttribute("suppliers", supplierService.getActiveSuppliers());
+        model.addAttribute("products", productService.searchProducts(
+                null, null, PageRequest.of(0, 1000, Sort.by("name"))).getContent());
     }
 }

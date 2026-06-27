@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>발주 등록 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>발주 등록</h2>
+
+<a href="/orders">목록으로</a>
+
+<form th:action="@{/orders}" th:object="${form}" method="post">
+
+    <div>
+        <label>거래처 *</label>
+        <select th:field="*{supplierId}">
+            <option value="">-- 선택 --</option>
+            <option th:each="sup : ${suppliers}"
+                    th:value="${sup.supplierId}"
+                    th:text="${sup.name}"></option>
+        </select>
+        <span th:if="${#fields.hasErrors('supplierId')}" th:errors="*{supplierId}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>비고</label>
+        <textarea th:field="*{note}" rows="2"></textarea>
+        <span th:if="${#fields.hasErrors('note')}" th:errors="*{note}" style="color:red;"></span>
+    </div>
+
+    <h3>발주 항목 *</h3>
+    <span th:if="${#fields.hasErrors('items')}" th:errors="*{items}" style="color:red;"></span>
+
+    <table border="1">
+        <thead>
+            <tr><th>상품</th><th>수량</th><th></th></tr>
+        </thead>
+        <tbody id="itemBody">
+            <!-- 검증 실패로 되돌아온 경우 입력값을 다시 그린다 -->
+            <tr th:each="item, stat : *{items}">
+                <td>
+                    <select th:field="*{items[__${stat.index}__].productId}">
+                        <option value="">-- 선택 --</option>
+                        <option th:each="p : ${products}"
+                                th:value="${p.productId}"
+                                th:text="${p.name}"></option>
+                    </select>
+                    <span th:if="${#fields.hasErrors('items[__${stat.index}__].productId')}"
+                          th:errors="*{items[__${stat.index}__].productId}" style="color:red;"></span>
+                </td>
+                <td>
+                    <input type="number" th:field="*{items[__${stat.index}__].quantity}" min="1">
+                    <span th:if="${#fields.hasErrors('items[__${stat.index}__].quantity')}"
+                          th:errors="*{items[__${stat.index}__].quantity}" style="color:red;"></span>
+                </td>
+                <td><button type="button" onclick="this.closest('tr').remove()">삭제</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" onclick="addItemRow()">항목 추가</button>
+
+    <br><br>
+    <button type="submit">등록</button>
+    <a href="/orders">취소</a>
+</form>
+
+<!-- 항목 추가용 행 템플릿 -->
+<template id="rowTemplate">
+    <tr>
+        <td>
+            <select name="items[__INDEX__].productId">
+                <option value="">-- 선택 --</option>
+                <option th:each="p : ${products}"
+                        th:value="${p.productId}"
+                        th:text="${p.name}"></option>
+            </select>
+        </td>
+        <td><input type="number" name="items[__INDEX__].quantity" min="1" value="1"></td>
+        <td><button type="button" onclick="this.closest('tr').remove()">삭제</button></td>
+    </tr>
+</template>
+<div id="itemMeta" th:attr="data-count=${form.items != null ? form.items.size() : 0}" style="display:none"></div>
+
+<script>
+    let itemIndex = parseInt(document.getElementById('itemMeta').dataset.count) || 0;
+
+    function addItemRow() {
+        const html = document.getElementById('rowTemplate').innerHTML.split('__INDEX__').join(itemIndex++);
+        document.getElementById('itemBody').insertAdjacentHTML('beforeend', html);
+    }
+
+    // 최초 진입(항목 없음) 시 빈 줄 하나를 자동으로 추가한다.
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('itemBody').children.length === 0) {
+            addItemRow();
+        }
+    });
+</script>
+
+</body>
+</html>

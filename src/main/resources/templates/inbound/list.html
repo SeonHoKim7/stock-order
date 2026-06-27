@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>입고 관리 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>입고 관리</h2>
+
+<a href="/dashboard">대시보드</a>
+
+<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+
+<!-- 검색 폼 -->
+<form method="get" th:action="@{/inbounds}">
+    <select name="supplierId">
+        <option value="">전체 거래처</option>
+        <option th:each="sup : ${suppliers}"
+                th:value="${sup.supplierId}"
+                th:text="${sup.name}"
+                th:selected="${condition.supplierId != null and condition.supplierId == sup.supplierId}"></option>
+    </select>
+    <input type="date" name="startDate" th:value="${condition.startDate}">
+    ~
+    <input type="date" name="endDate" th:value="${condition.endDate}">
+    <button type="submit">검색</button>
+    <a th:href="@{/inbounds}">초기화</a>
+</form>
+
+<sec:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+    <a href="/inbounds/new">입고 등록</a>
+</sec:authorize>
+
+<!-- 입고 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>입고번호</th>
+            <th>발주번호</th>
+            <th>거래처</th>
+            <th>처리자</th>
+            <th>입고일</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="inbound : ${inbounds}">
+            <td><a th:href="@{/inbounds/{id}(id=${inbound.inboundId})}" th:text="${inbound.inboundNumber}"></a></td>
+            <td th:text="${inbound.orderNumber}"></td>
+            <td th:text="${inbound.supplierName}"></td>
+            <td th:text="${inbound.processorName}"></td>
+            <td th:text="${#temporals.format(inbound.inboundDate, 'yyyy-MM-dd')}"></td>
+        </tr>
+        <tr th:if="${inbounds.isEmpty()}">
+            <td colspan="5">입고 내역이 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${inbounds.totalPages > 1}">
+    <a th:if="${!inbounds.first}"
+       th:href="@{/inbounds(supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${inbounds.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, inbounds.totalPages - 1)}">
+        <a th:if="${i != inbounds.number}"
+           th:href="@{/inbounds(supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == inbounds.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!inbounds.last}"
+       th:href="@{/inbounds(supplierId=${condition.supplierId}, startDate=${condition.startDate}, endDate=${condition.endDate}, page=${inbounds.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${inbounds.totalElements}"></span>건</p>
+
+</body>
+</html>
