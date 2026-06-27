@@ -42,9 +42,15 @@
     </div>
 
     <div>
-        <label>단가 *</label>
-        <input type="number" th:field="*{unitPrice}" step="0.01" min="0">
-        <span th:if="${#fields.hasErrors('unitPrice')}" th:errors="*{unitPrice}" style="color:red;"></span>
+        <label>매입가 *</label>
+        <input type="number" th:field="*{purchasePrice}" step="0.01" min="0">
+        <span th:if="${#fields.hasErrors('purchasePrice')}" th:errors="*{purchasePrice}" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>매출가 *</label>
+        <input type="number" th:field="*{salePrice}" step="0.01" min="0">
+        <span th:if="${#fields.hasErrors('salePrice')}" th:errors="*{salePrice}" style="color:red;"></span>
     </div>
 
     <div>

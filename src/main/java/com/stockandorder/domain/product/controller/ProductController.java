@@ -85,7 +85,8 @@ public class ProductController {
         form.setName(product.getName());
         form.setCategoryId(product.getCategoryId());
         form.setUnit(product.getUnit());
-        form.setUnitPrice(product.getUnitPrice());
+        form.setPurchasePrice(product.getPurchasePrice());
+        form.setSalePrice(product.getSalePrice());
         form.setSafetyStock(product.getSafetyStock());
         form.setDescription(product.getDescription());
         model.addAttribute("product", product);

@@ -32,8 +32,14 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private String unit;
 
+    // 매입가: 공급처에서 사들이는 단가. 발주 시 PurchaseOrderItem이 스냅샷한다.
     @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal unitPrice;
+    private BigDecimal purchasePrice;
+
+    // 매출가: 판매처에 파는 단가. 출고 시 OutboundItem이 스냅샷한다.
+    // 매입/매출을 분리해 출고 금액(매출)이 매입 원가와 구분되도록 한다(마진 0 모델 회피).
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal salePrice;
 
     @Column(nullable = false)
     private int safetyStock;
@@ -45,26 +51,36 @@ public class Product extends BaseTimeEntity {
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
-    public static Product create(String productCode, String name, Category category,
-                                 String unit, BigDecimal unitPrice, int safetyStock, String description) {
+    public static Product create(String productCode, String name, Category category, String unit,
+                                 BigDecimal purchasePrice, BigDecimal salePrice,
+                                 int safetyStock, String description) {
         Product product = new Product();
         product.productCode = productCode;
         product.name = name;
         product.category = category;
         product.unit = unit;
-        product.unitPrice = unitPrice;
+        product.purchasePrice = purchasePrice;
+        product.salePrice = salePrice;
         product.safetyStock = safetyStock;
         product.description = description;
         product.isActive = true;
         return product;
     }
 
-    public void update(String name, Category category, String unit, BigDecimal unitPrice,
+    // 매출가 미지정 시 매입가와 동일하게 출발(신규 상품은 원가로 시작, 이후 매출가 책정). 단순 생성/테스트 편의.
+    public static Product create(String productCode, String name, Category category, String unit,
+                                 BigDecimal purchasePrice, int safetyStock, String description) {
+        return create(productCode, name, category, unit, purchasePrice, purchasePrice, safetyStock, description);
+    }
+
+    public void update(String name, Category category, String unit,
+                       BigDecimal purchasePrice, BigDecimal salePrice,
                        int safetyStock, String description) {
         this.name = name;
         this.category = category;
         this.unit = unit;
-        this.unitPrice = unitPrice;
+        this.purchasePrice = purchasePrice;
+        this.salePrice = salePrice;
         this.safetyStock = safetyStock;
         this.description = description;
     }

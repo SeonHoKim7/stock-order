@@ -49,7 +49,8 @@ public class ProductService {
                 request.getName(),
                 category,
                 request.getUnit(),
-                request.getUnitPrice(),
+                request.getPurchasePrice(),
+                request.getSalePrice(),
                 request.getSafetyStock(),
                 request.getDescription()
         ));
@@ -64,7 +65,8 @@ public class ProductService {
                 request.getName(),
                 category,
                 request.getUnit(),
-                request.getUnitPrice(),
+                request.getPurchasePrice(),
+                request.getSalePrice(),
                 request.getSafetyStock(),
                 request.getDescription()
         );

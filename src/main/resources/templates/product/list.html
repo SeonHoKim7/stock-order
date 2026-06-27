@@ -39,7 +39,8 @@
             <th>상품명</th>
             <th>카테고리</th>
             <th>단위</th>
-            <th>단가</th>
+            <th>매입가</th>
+            <th>매출가</th>
             <th>안전재고</th>
             <th>등록일</th>
             <th></th>
@@ -51,7 +52,8 @@
             <td><a th:href="@{/products/{id}(id=${product.productId})}" th:text="${product.name}"></a></td>
             <td th:text="${product.categoryName}"></td>
             <td th:text="${product.unit}"></td>
-            <td th:text="${#numbers.formatDecimal(product.unitPrice, 1, 'COMMA', 0, 'POINT')}"></td>
+            <td th:text="${#numbers.formatDecimal(product.purchasePrice, 1, 'COMMA', 0, 'POINT')}"></td>
+            <td th:text="${#numbers.formatDecimal(product.salePrice, 1, 'COMMA', 0, 'POINT')}"></td>
             <td th:text="${product.safetyStock}"></td>
             <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd')}"></td>
             <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">

@@ -193,7 +193,7 @@ class ProductServiceTest {
         assertThat(product.getName()).isEqualTo("노트북 Pro");
         assertThat(product.getCategory()).isEqualTo(newCategory);
         assertThat(product.getUnit()).isEqualTo("BOX");
-        assertThat(product.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(1500000));
+        assertThat(product.getPurchasePrice()).isEqualByComparingTo(BigDecimal.valueOf(1500000));
         assertThat(product.getSafetyStock()).isEqualTo(5);
         assertThat(product.getDescription()).isEqualTo("신설명");
     }
@@ -288,7 +288,8 @@ class ProductServiceTest {
         request.setName(name);
         request.setCategoryId(categoryId);
         request.setUnit("EA");
-        request.setUnitPrice(BigDecimal.valueOf(10000));
+        request.setPurchasePrice(BigDecimal.valueOf(10000));
+        request.setSalePrice(BigDecimal.valueOf(12000));
         request.setSafetyStock(0);
         return request;
     }
@@ -299,7 +300,8 @@ class ProductServiceTest {
         request.setName(name);
         request.setCategoryId(categoryId);
         request.setUnit(unit);
-        request.setUnitPrice(unitPrice);
+        request.setPurchasePrice(unitPrice);
+        request.setSalePrice(unitPrice);
         request.setSafetyStock(safetyStock);
         request.setDescription(description);
         return request;

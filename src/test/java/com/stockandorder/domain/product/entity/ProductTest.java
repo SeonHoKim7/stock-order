@@ -19,14 +19,15 @@ class ProductTest {
 
         Product product = Product.create(
                 "PRD-00001", "노트북", category, "EA",
-                BigDecimal.valueOf(1200000), 3, "업무용 노트북"
+                BigDecimal.valueOf(1200000), BigDecimal.valueOf(1500000), 3, "업무용 노트북"
         );
 
         assertThat(product.getProductCode()).isEqualTo("PRD-00001");
         assertThat(product.getName()).isEqualTo("노트북");
         assertThat(product.getCategory()).isEqualTo(category);
         assertThat(product.getUnit()).isEqualTo("EA");
-        assertThat(product.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(1200000));
+        assertThat(product.getPurchasePrice()).isEqualByComparingTo(BigDecimal.valueOf(1200000));
+        assertThat(product.getSalePrice()).isEqualByComparingTo(BigDecimal.valueOf(1500000));
         assertThat(product.getSafetyStock()).isEqualTo(3);
         assertThat(product.getDescription()).isEqualTo("업무용 노트북");
         assertThat(product.isActive()).isTrue();
@@ -43,12 +44,14 @@ class ProductTest {
         Product product = Product.create("PRD-00001", "노트북", oldCategory, "EA",
                 BigDecimal.valueOf(1200000), 3, "구설명");
 
-        product.update("노트북 Pro", newCategory, "BOX", BigDecimal.valueOf(1500000), 5, "신설명");
+        product.update("노트북 Pro", newCategory, "BOX",
+                BigDecimal.valueOf(1500000), BigDecimal.valueOf(1800000), 5, "신설명");
 
         assertThat(product.getName()).isEqualTo("노트북 Pro");
         assertThat(product.getCategory()).isEqualTo(newCategory);
         assertThat(product.getUnit()).isEqualTo("BOX");
-        assertThat(product.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(1500000));
+        assertThat(product.getPurchasePrice()).isEqualByComparingTo(BigDecimal.valueOf(1500000));
+        assertThat(product.getSalePrice()).isEqualByComparingTo(BigDecimal.valueOf(1800000));
         assertThat(product.getSafetyStock()).isEqualTo(5);
         assertThat(product.getDescription()).isEqualTo("신설명");
     }

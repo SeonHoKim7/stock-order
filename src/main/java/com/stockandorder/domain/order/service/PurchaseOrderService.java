@@ -53,7 +53,7 @@ public class PurchaseOrderService {
             PurchaseOrderItem item = PurchaseOrderItem.create(
                     product,
                     itemReq.getQuantity(),
-                    product.getUnitPrice()
+                    product.getPurchasePrice()
             );
             order.addItem(item);
         }

@@ -126,11 +126,11 @@ class PurchaseOrderServiceTest {
             // 10 * 10,000 + 20 * 5,000 = 200,000
             assertThat(saved.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(200000));
 
-            // unitPrice가 Product에서 스냅샷되었는지 확인
+            // unitPrice가 Product의 매입가에서 스냅샷되었는지 확인
             assertThat(saved.getItems().get(0).getUnitPrice())
-                    .isEqualByComparingTo(product1.getUnitPrice());
+                    .isEqualByComparingTo(product1.getPurchasePrice());
             assertThat(saved.getItems().get(1).getUnitPrice())
-                    .isEqualByComparingTo(product2.getUnitPrice());
+                    .isEqualByComparingTo(product2.getPurchasePrice());
         }
 
         @Test

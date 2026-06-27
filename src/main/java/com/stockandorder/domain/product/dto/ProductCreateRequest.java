@@ -27,9 +27,13 @@ public class ProductCreateRequest {
     @Size(max = 20, message = "단위는 20자 이하여야 합니다.")
     private String unit;
 
-    @NotNull(message = "단가를 입력해주세요.")
-    @DecimalMin(value = "0", message = "단가는 0 이상이어야 합니다.")
-    private BigDecimal unitPrice;
+    @NotNull(message = "매입가를 입력해주세요.")
+    @DecimalMin(value = "0", message = "매입가는 0 이상이어야 합니다.")
+    private BigDecimal purchasePrice;
+
+    @NotNull(message = "매출가를 입력해주세요.")
+    @DecimalMin(value = "0", message = "매출가는 0 이상이어야 합니다.")
+    private BigDecimal salePrice;
 
     @Min(value = 0, message = "안전 재고량은 0 이상이어야 합니다.")
     private int safetyStock;

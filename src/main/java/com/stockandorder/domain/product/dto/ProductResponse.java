@@ -15,7 +15,8 @@ public class ProductResponse {
     private final Long categoryId;
     private final String categoryName;
     private final String unit;
-    private final BigDecimal unitPrice;
+    private final BigDecimal purchasePrice;
+    private final BigDecimal salePrice;
     private final int safetyStock;
     private final String description;
     private final boolean active;
@@ -29,7 +30,8 @@ public class ProductResponse {
         this.categoryId = product.getCategory().getCategoryId();
         this.categoryName = product.getCategory().getName();
         this.unit = product.getUnit();
-        this.unitPrice = product.getUnitPrice();
+        this.purchasePrice = product.getPurchasePrice();
+        this.salePrice = product.getSalePrice();
         this.safetyStock = product.getSafetyStock();
         this.description = product.getDescription();
         this.active = product.isActive();

@@ -33,8 +33,12 @@
         <td th:text="${product.unit}"></td>
     </tr>
     <tr>
-        <th>단가</th>
-        <td th:text="${#numbers.formatDecimal(product.unitPrice, 1, 'COMMA', 0, 'POINT')}"></td>
+        <th>매입가</th>
+        <td th:text="${#numbers.formatDecimal(product.purchasePrice, 1, 'COMMA', 0, 'POINT')}"></td>
+    </tr>
+    <tr>
+        <th>매출가</th>
+        <td th:text="${#numbers.formatDecimal(product.salePrice, 1, 'COMMA', 0, 'POINT')}"></td>
     </tr>
     <tr>
         <th>안전 재고량</th>
