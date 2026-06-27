@@ -95,4 +95,60 @@ class StockServiceTest {
                         .isEqualTo(ErrorCode.STOCK_NOT_FOUND));
         then(stockLogRepository).should(never()).save(org.mockito.ArgumentMatchers.any());
     }
+
+    @Test
+    @DisplayName("decrease: 비관적 락으로 재고를 조회해 수량을 줄인다")
+    void decrease_decreasesStockQuantity() {
+        stock.increase(10); // 기존 재고 10
+        given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
+
+        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID);
+
+        assertThat(stock.getQuantity()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("decrease: 변동 이력을 OUTBOUND 타입으로 음수 변동량·before/after·referenceId와 함께 기록한다")
+    void decrease_recordsStockLog() {
+        stock.increase(10); // 기존 재고 10
+        given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
+
+        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID);
+
+        ArgumentCaptor<StockLog> captor = ArgumentCaptor.forClass(StockLog.class);
+        then(stockLogRepository).should().save(captor.capture());
+        StockLog log = captor.getValue();
+        assertThat(log.getProduct()).isEqualTo(product);
+        assertThat(log.getChangeType()).isEqualTo(StockChangeType.OUTBOUND);
+        assertThat(log.getChangeQuantity()).isEqualTo(-6); // 출고는 음수로 기록
+        assertThat(log.getBeforeQuantity()).isEqualTo(10);
+        assertThat(log.getAfterQuantity()).isEqualTo(4);
+        assertThat(log.getReferenceId()).isEqualTo(REFERENCE_ID);
+        assertThat(log.getReason()).isNull();
+    }
+
+    @Test
+    @DisplayName("decrease: 재고가 부족하면 STOCK_INSUFFICIENT 예외가 발생하고 로그를 남기지 않는다")
+    void decrease_insufficientStock_throws() {
+        stock.increase(5); // 재고 5뿐인데 6 출고 시도
+        given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
+
+        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.STOCK_INSUFFICIENT));
+        then(stockLogRepository).should(never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("decrease: 재고 레코드가 없으면 STOCK_NOT_FOUND 예외가 발생한다")
+    void decrease_stockNotFound_throws() {
+        given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.STOCK_NOT_FOUND));
+        then(stockLogRepository).should(never()).save(org.mockito.ArgumentMatchers.any());
+    }
 }

@@ -54,10 +54,9 @@ public enum ErrorCode {
     INBOUND_ITEM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 전량 입고 완료된 항목입니다."),
     INBOUND_DUPLICATE_ORDER_ITEM(HttpStatus.BAD_REQUEST, "같은 발주 항목을 중복으로 입력할 수 없습니다."),
 
-    // Outbound
+    // Outbound (단일화: 생성 즉시 확정·재고 차감. status 없음 → 확정/취소 상태 에러코드 없음)
     OUTBOUND_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 출고 내역입니다."),
-    OUTBOUND_STATUS_CANNOT_CONFIRM(HttpStatus.BAD_REQUEST, "대기 상태의 출고만 확정할 수 있습니다."),
-    OUTBOUND_STATUS_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "대기 상태의 출고만 취소할 수 있습니다."),
+    OUTBOUND_DUPLICATE_PRODUCT(HttpStatus.BAD_REQUEST, "같은 상품을 중복으로 입력할 수 없습니다. 한 줄로 합쳐주세요."),
 
     // Stock
     STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 상품의 재고 정보가 존재하지 않습니다."),

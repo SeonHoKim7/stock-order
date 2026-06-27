@@ -53,4 +53,26 @@ public class StockService {
                 quantity, before, after, referenceId, null);
         stockLogRepository.save(log);
     }
+
+    /**
+     * 출고에 따른 재고 감소 + 변동 이력 기록. increase()의 거울이다.
+     * 재고 부족이면 Stock.decrease()가 STOCK_INSUFFICIENT를 던져 음수 재고를 구조적으로 막는다.
+     *
+     * @param productId   대상 상품
+     * @param quantity    감소 수량(양수). StockLog에는 음수(-quantity)로 기록된다.
+     * @param referenceId 변동 원본(출고 id). StockLog.referenceId에 기록되어 추적에 쓰인다.
+     */
+    public void decrease(Long productId, int quantity, Long referenceId) {
+        Stock stock = stockRepository.findByProductIdForUpdate(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
+
+        int before = stock.getQuantity();
+        stock.decrease(quantity);
+        int after = stock.getQuantity();
+
+        // OUTBOUND 로그는 변동량을 음수로 기록한다(StockLog가 방향을 검증함).
+        StockLog log = StockLog.of(stock.getProduct(), StockChangeType.OUTBOUND,
+                -quantity, before, after, referenceId, null);
+        stockLogRepository.save(log);
+    }
 }
