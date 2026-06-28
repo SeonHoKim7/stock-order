@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>재고 현황 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>재고 현황</h2>
+
+<a href="/dashboard">대시보드</a>
+
+<!-- 검색/필터 폼 -->
+<form method="get" th:action="@{/stocks}">
+    <input type="text" name="keyword" th:value="${condition.keyword}" placeholder="상품명 또는 상품코드">
+    <select name="categoryId">
+        <option value="">전체 카테고리</option>
+        <option th:each="cat : ${categories}"
+                th:value="${cat.categoryId}"
+                th:text="${cat.name}"
+                th:selected="${condition.categoryId != null and condition.categoryId == cat.categoryId}"></option>
+    </select>
+    <select name="status">
+        <option value="">전체 상태</option>
+        <option th:each="s : ${T(com.stockandorder.domain.stock.enums.StockStatus).values()}"
+                th:value="${s.name()}"
+                th:text="${s.label}"
+                th:selected="${condition.status != null and condition.status.name() == s.name()}"></option>
+    </select>
+    <select name="sort">
+        <option value="" th:selected="${condition.sort == null or condition.sort == ''}">상품명순</option>
+        <option value="QUANTITY_ASC" th:selected="${condition.sort == 'QUANTITY_ASC'}">재고량 적은 순</option>
+        <option value="QUANTITY_DESC" th:selected="${condition.sort == 'QUANTITY_DESC'}">재고량 많은 순</option>
+    </select>
+    <button type="submit">검색</button>
+    <a th:href="@{/stocks}">초기화</a>
+</form>
+
+<!-- 재고 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>상품코드</th>
+            <th>상품명</th>
+            <th>카테고리</th>
+            <th>현재고</th>
+            <th>안전재고</th>
+            <th>상태</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="stock : ${stocks}" th:style="${stock.shortage} ? 'background-color:#ffecec;' : ''">
+            <td th:text="${stock.productCode}"></td>
+            <td><a th:href="@{/products/{id}(id=${stock.productId})}" th:text="${stock.productName}"></a></td>
+            <td th:text="${stock.categoryName != null ? stock.categoryName : '-'}"></td>
+            <td th:text="${stock.quantity}"></td>
+            <td th:text="${stock.safetyStock}"></td>
+            <td th:text="${stock.statusLabel}"
+                th:style="${stock.shortage} ? 'color:red; font-weight:bold;' : ''"></td>
+        </tr>
+        <tr th:if="${stocks.isEmpty()}">
+            <td colspan="6">조회된 재고가 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${stocks.totalPages > 1}">
+    <a th:if="${!stocks.first}"
+       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${stocks.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, stocks.totalPages - 1)}">
+        <a th:if="${i != stocks.number}"
+           th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == stocks.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!stocks.last}"
+       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${stocks.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${stocks.totalElements}"></span>개</p>
+
+</body>
+</html>

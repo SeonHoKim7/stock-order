@@ -1,5 +1,7 @@
 package com.stockandorder.domain.stock.service;
 
+import com.stockandorder.domain.stock.dto.StockListResponse;
+import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.entity.Stock;
 import com.stockandorder.domain.stock.entity.StockLog;
 import com.stockandorder.domain.stock.enums.StockChangeType;
@@ -8,7 +10,10 @@ import com.stockandorder.domain.stock.repository.StockRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 재고 변경의 단일 통로(G-1). "비관적 락 획득 → 재고 증감 → before/after 스냅샷 → StockLog 기록"을
@@ -31,6 +36,14 @@ public class StockService {
 
     private final StockRepository stockRepository;
     private final StockLogRepository stockLogRepository;
+
+    /**
+     * 재고 현황 목록 조회(읽기 전용). 변경 경로와 달리 락을 잡지 않는다(찰나의 stale 허용).
+     */
+    @Transactional(readOnly = true)
+    public Page<StockListResponse> searchStocks(StockSearchCondition condition, Pageable pageable) {
+        return stockRepository.search(condition, pageable);
+    }
 
     /**
      * 입고에 따른 재고 증가 + 변동 이력 기록.
