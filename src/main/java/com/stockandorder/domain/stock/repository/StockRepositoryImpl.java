@@ -84,7 +84,9 @@ public class StockRepositoryImpl implements StockRepositoryCustom {
         return switch (status) {
             case OUT_OF_STOCK -> stock.quantity.eq(0);
             case SHORTAGE -> stock.quantity.gt(0).and(stock.quantity.lt(product.safetyStock));
-            case NORMAL -> stock.quantity.goe(product.safetyStock);
+            // 수량 0은 안전재고와 무관하게 항상 품절(DTO getStatus 규칙과 일치). gt(0)을 빼면
+            // 안전재고 0·수량 0인 상품이 NORMAL에도 잡혀 품절과 겹친다.
+            case NORMAL -> stock.quantity.gt(0).and(stock.quantity.goe(product.safetyStock));
         };
     }
 
