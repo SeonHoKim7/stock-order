@@ -21,17 +21,19 @@
                 th:text="${cat.name}"
                 th:selected="${condition.categoryId != null and condition.categoryId == cat.categoryId}"></option>
     </select>
-    <select name="status">
-        <option value="">전체 상태</option>
-        <option th:each="s : ${T(com.stockandorder.domain.stock.enums.StockStatus).values()}"
-                th:value="${s.name()}"
-                th:text="${s.label}"
-                th:selected="${condition.status != null and condition.status.name() == s.name()}"></option>
-    </select>
+    <!-- 상태 다중선택: 품절+미달 동시 보기를 지원한다(체크 없으면 전체) -->
+    <span>
+        <label th:each="s : ${T(com.stockandorder.domain.stock.enums.StockStatus).values()}">
+            <input type="checkbox" name="statuses" th:value="${s.name()}"
+                   th:checked="${condition.statuses != null and condition.statuses.contains(s)}">
+            <span th:text="${s.label}"></span>
+        </label>
+    </span>
     <select name="sort">
         <option value="" th:selected="${condition.sort == null or condition.sort == ''}">상품명순</option>
         <option value="QUANTITY_ASC" th:selected="${condition.sort == 'QUANTITY_ASC'}">재고량 적은 순</option>
         <option value="QUANTITY_DESC" th:selected="${condition.sort == 'QUANTITY_DESC'}">재고량 많은 순</option>
+        <option value="RISK" th:selected="${condition.sort == 'RISK'}">위험도순(미달 심한 순)</option>
     </select>
     <button type="submit">검색</button>
     <a th:href="@{/stocks}">초기화</a>
@@ -68,15 +70,15 @@
 <!-- 페이징 -->
 <div th:if="${stocks.totalPages > 1}">
     <a th:if="${!stocks.first}"
-       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${stocks.number - 1})}">이전</a>
+       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, statuses=${condition.statuses}, sort=${condition.sort}, page=${stocks.number - 1})}">이전</a>
     <span th:each="i : ${#numbers.sequence(0, stocks.totalPages - 1)}">
         <a th:if="${i != stocks.number}"
-           th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${i})}"
+           th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, statuses=${condition.statuses}, sort=${condition.sort}, page=${i})}"
            th:text="${i + 1}"></a>
         <strong th:if="${i == stocks.number}" th:text="${i + 1}"></strong>
     </span>
     <a th:if="${!stocks.last}"
-       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, status=${condition.status}, sort=${condition.sort}, page=${stocks.number + 1})}">다음</a>
+       th:href="@{/stocks(keyword=${condition.keyword}, categoryId=${condition.categoryId}, statuses=${condition.statuses}, sort=${condition.sort}, page=${stocks.number + 1})}">다음</a>
 </div>
 
 <p>총 <span th:text="${stocks.totalElements}"></span>개</p>

@@ -5,15 +5,19 @@ import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.entity.Stock;
 import com.stockandorder.domain.stock.entity.StockLog;
 import com.stockandorder.domain.stock.enums.StockChangeType;
+import com.stockandorder.domain.stock.enums.StockStatus;
 import com.stockandorder.domain.stock.repository.StockLogRepository;
 import com.stockandorder.domain.stock.repository.StockRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * 재고 변경의 단일 통로(G-1). "비관적 락 획득 → 재고 증감 → before/after 스냅샷 → StockLog 기록"을
@@ -43,6 +47,21 @@ public class StockService {
     @Transactional(readOnly = true)
     public Page<StockListResponse> searchStocks(StockSearchCondition condition, Pageable pageable) {
         return stockRepository.search(condition, pageable);
+    }
+
+    /**
+     * 안전 재고 경고 미리보기(대시보드 위젯용). "경고 = 품절+미달, 위험도순"이라는 정의를 이 한 곳에 모은다.
+     * 별도 쿼리를 만들지 않고 search()를 재사용한다 — 반환된 Page 한 개에 경고 건수(getTotalElements)와
+     * 상위 N개(getContent)가 함께 담겨 대시보드가 필요한 모양과 정확히 일치한다.
+     *
+     * @param limit 미리보기로 보여줄 상위 건수
+     */
+    @Transactional(readOnly = true)
+    public Page<StockListResponse> getLowStockPreview(int limit) {
+        StockSearchCondition condition = new StockSearchCondition();
+        condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK, StockStatus.SHORTAGE));
+        condition.setSort("RISK");
+        return stockRepository.search(condition, PageRequest.of(0, limit));
     }
 
     /**

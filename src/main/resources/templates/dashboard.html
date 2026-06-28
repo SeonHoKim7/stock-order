@@ -15,5 +15,37 @@
     <button type="submit">로그아웃</button>
 </form>
 
+<!-- 안전 재고 미달 경고 위젯: 건수 + 상위 N개 미리보기 + 전체보기 -->
+<div>
+    <h3>안전 재고 경고 (<span th:text="${lowStock.totalElements}">0</span>건)</h3>
+
+    <table border="1" th:if="${!lowStock.isEmpty()}">
+        <thead>
+            <tr>
+                <th>상품명</th>
+                <th>현재고</th>
+                <th>안전재고</th>
+                <th>상태</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${lowStock.content}">
+                <td><a th:href="@{/products/{id}(id=${item.productId})}" th:text="${item.productName}"></a></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${item.safetyStock}"></td>
+                <td th:text="${item.statusLabel}" style="color:red; font-weight:bold;"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p th:if="${lowStock.isEmpty()}">경고 대상 상품이 없습니다.</p>
+
+    <!-- 전체보기: 별도 페이지 없이 기존 재고 목록에 경고 필터(품절+미달)+위험도순을 걸어 이동 -->
+    <a th:if="${lowStock.totalElements > 0}"
+       th:href="@{/stocks(statuses=${T(com.stockandorder.domain.stock.enums.StockStatus).OUT_OF_STOCK},
+                          statuses=${T(com.stockandorder.domain.stock.enums.StockStatus).SHORTAGE},
+                          sort='RISK')}">전체보기</a>
+</div>
+
 </body>
 </html>

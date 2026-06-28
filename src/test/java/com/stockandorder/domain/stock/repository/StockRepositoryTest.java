@@ -113,7 +113,7 @@ class StockRepositoryTest {
         em.clear();
 
         StockSearchCondition condition = new StockSearchCondition();
-        condition.setStatus(StockStatus.SHORTAGE);
+        condition.setStatuses(List.of(StockStatus.SHORTAGE));
 
         Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 10));
 
@@ -134,7 +134,7 @@ class StockRepositoryTest {
         em.clear();
 
         StockSearchCondition condition = new StockSearchCondition();
-        condition.setStatus(StockStatus.OUT_OF_STOCK);
+        condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK));
 
         Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 10));
 
@@ -143,6 +143,75 @@ class StockRepositoryTest {
                 .extracting(StockListResponse::getProductCode)
                 .contains("O-OUT")
                 .doesNotContain("O-SHORT");
+    }
+
+    @Test
+    @DisplayName("search: statuses 다중선택(품절+미달)은 두 상태를 모두 반환하고 정상은 제외한다")
+    void search_filtersByMultipleStatuses() {
+        Category category = Category.create("다중필터테스트", null);
+        em.persist(category);
+        persistProductWithStock("M-OUT", "품절상품", category, 10, 0);   // 품절
+        persistProductWithStock("M-SHORT", "미달상품", category, 10, 5);  // 미달
+        persistProductWithStock("M-OK", "정상상품", category, 10, 20);    // 정상
+        em.flush();
+        em.clear();
+
+        StockSearchCondition condition = new StockSearchCondition();
+        condition.setCategoryId(category.getCategoryId());
+        condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK, StockStatus.SHORTAGE));
+
+        Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent())
+                .extracting(StockListResponse::getProductCode)
+                .containsExactlyInAnyOrder("M-OUT", "M-SHORT")
+                .doesNotContain("M-OK");
+    }
+
+    @Test
+    @DisplayName("search: status=NORMAL 필터는 안전재고 0·수량 0 상품을 정상으로 잡지 않는다(품절과 겹침 방지)")
+    void search_normalFilter_excludesZeroQuantityZeroSafety() {
+        Category category = Category.create("정상필터테스트", null);
+        em.persist(category);
+        persistProductWithStock("N-ZERO", "기준없는품절", category, 0, 0);  // 안전재고0·수량0 → 품절이어야 함
+        persistProductWithStock("N-OK", "정상상품", category, 5, 10);        // 정상
+        em.flush();
+        em.clear();
+
+        StockSearchCondition condition = new StockSearchCondition();
+        condition.setCategoryId(category.getCategoryId());
+        condition.setStatuses(List.of(StockStatus.NORMAL));
+
+        Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent())
+                .extracting(StockListResponse::getProductCode)
+                .containsExactly("N-OK")
+                .doesNotContain("N-ZERO");
+    }
+
+    @Test
+    @DisplayName("search: sort=RISK 는 품절을 맨 위로, 미달은 충족률 오름차순으로 정렬한다(정수나눗셈 잘림 없음)")
+    void search_sortByRisk() {
+        Category category = Category.create("위험도정렬테스트", null);
+        em.persist(category);
+        // 충족률: R-90 = 0.9, R-2 = 0.66. 정수 나눗셈이면 둘 다 0이라 순위가 사라진다 → double 정렬 검증.
+        persistProductWithStock("R-90", "충족90", category, 100, 90);  // 미달, 충족률 0.9
+        persistProductWithStock("R-2", "충족66", category, 3, 2);       // 미달, 충족률 0.66
+        persistProductWithStock("R-OUT", "품절", category, 10, 0);      // 품절(맨 위)
+        em.flush();
+        em.clear();
+
+        StockSearchCondition condition = new StockSearchCondition();
+        condition.setCategoryId(category.getCategoryId());
+        condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK, StockStatus.SHORTAGE));
+        condition.setSort("RISK");
+
+        Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent())
+                .extracting(StockListResponse::getProductCode)
+                .containsExactly("R-OUT", "R-2", "R-90");
     }
 
     @Test
@@ -160,7 +229,7 @@ class StockRepositoryTest {
 
         StockSearchCondition condition = new StockSearchCondition();
         condition.setCategoryId(category.getCategoryId());
-        condition.setStatus(StockStatus.SHORTAGE);
+        condition.setStatuses(List.of(StockStatus.SHORTAGE));
 
         Page<StockListResponse> result = stockRepository.search(condition, PageRequest.of(0, 2));
 

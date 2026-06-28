@@ -4,6 +4,7 @@ import com.stockandorder.domain.dashboard.controller.DashboardController;
 import com.stockandorder.domain.member.controller.AuthController;
 import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.member.enums.Role;
+import com.stockandorder.domain.stock.service.StockService;
 import com.stockandorder.global.auth.CustomUserDetails;
 import com.stockandorder.global.auth.CustomUserDetailsService;
 import org.junit.jupiter.api.DisplayName;
@@ -11,10 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -33,6 +36,10 @@ class SecurityConfigTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    // DashboardController가 경고 위젯용으로 의존한다(슬라이스 테스트라 직접 mock 제공).
+    @MockitoBean
+    private StockService stockService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -56,6 +63,8 @@ class SecurityConfigTest {
     @DisplayName("인증된 사용자는 /dashboard에 접근할 수 있다")
     void authenticated_dashboard_returns200() throws Exception {
         CustomUserDetails userDetails = staffUserDetails();
+        // 위젯이 템플릿에서 렌더되므로 빈 Page를 반환하도록 stub
+        given(stockService.getLowStockPreview(anyInt())).willReturn(Page.empty());
 
         mockMvc.perform(get("/dashboard").with(user(userDetails)))
                 .andExpect(status().isOk());
