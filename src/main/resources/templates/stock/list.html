@@ -11,6 +11,8 @@
 
 <a href="/dashboard">대시보드</a>
 
+<p th:if="${message}" th:text="${message}" style="color:green;"></p>
+
 <!-- 검색/필터 폼 -->
 <form method="get" th:action="@{/stocks}">
     <input type="text" name="keyword" th:value="${condition.keyword}" placeholder="상품명 또는 상품코드">
@@ -49,6 +51,7 @@
             <th>현재고</th>
             <th>안전재고</th>
             <th>상태</th>
+            <th sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">관리</th>
         </tr>
     </thead>
     <tbody>
@@ -60,9 +63,12 @@
             <td th:text="${stock.safetyStock}"></td>
             <td th:text="${stock.statusLabel}"
                 th:style="${stock.shortage} ? 'color:red; font-weight:bold;' : ''"></td>
+            <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
+                <a th:href="@{/stocks/{id}/adjust(id=${stock.productId})}">조정</a>
+            </td>
         </tr>
         <tr th:if="${stocks.isEmpty()}">
-            <td colspan="6">조회된 재고가 없습니다.</td>
+            <td colspan="7">조회된 재고가 없습니다.</td>
         </tr>
     </tbody>
 </table>

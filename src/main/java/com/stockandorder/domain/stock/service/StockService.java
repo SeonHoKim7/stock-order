@@ -1,5 +1,6 @@
 package com.stockandorder.domain.stock.service;
 
+import com.stockandorder.domain.stock.dto.StockAdjustFormResponse;
 import com.stockandorder.domain.stock.dto.StockListResponse;
 import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.entity.Stock;
@@ -62,6 +63,58 @@ public class StockService {
         condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK, StockStatus.SHORTAGE));
         condition.setSort("RISK");
         return stockRepository.search(condition, PageRequest.of(0, limit));
+    }
+
+    /**
+     * 재고 수동 조정 폼에 표시할 현재 재고 정보(읽기 전용). currentQuantity가 폼의 seenQuantity 기준값이 된다.
+     */
+    @Transactional(readOnly = true)
+    public StockAdjustFormResponse getAdjustForm(Long productId) {
+        Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
+        return new StockAdjustFormResponse(
+                stock.getProduct().getProductId(),
+                stock.getProduct().getProductCode(),
+                stock.getProduct().getName(),
+                stock.getQuantity());
+    }
+
+    /**
+     * 재고 수동 조정(MANAGER+). 입력은 목표 수량(실사 절대값)이고 delta는 서버가 계산한다.
+     *
+     * 동시성: POST 한 트랜잭션 안의 읽기-수정-쓰기는 비관적 락이 막는다. 그와 별개로, 사용자가
+     * 폼을 띄운 시점(별도 GET)과 제출 시점 사이(think-time)에 재고가 바뀌었을 수 있으므로,
+     * 락을 잡은 실제 현재고가 seenQuantity와 다르면 거부한다(낙관적 검증). 이 think-time 구간은
+     * 락으로 막을 수 없다 — 막으려면 폼 조회부터 제출까지 락을 쥐고 있어야 하기 때문이다.
+     *
+     * @param productId      대상 상품
+     * @param targetQuantity 실사로 센 목표 수량(절대값)
+     * @param seenQuantity   사용자가 폼에서 본 현재고(낙관적 검증 기준값)
+     * @param reason         조정 사유(필수). ADJUST는 referenceId가 없어 유일한 추적 단서다.
+     */
+    @Transactional
+    public void adjust(Long productId, int targetQuantity, int seenQuantity, String reason) {
+        Stock stock = stockRepository.findByProductIdForUpdate(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
+
+        int before = stock.getQuantity();
+        // 낙관적 검증: 사용자가 본 값과 락 시점의 실제 현재고가 다르면 거부(think-time 동안 변동됨).
+        if (before != seenQuantity) {
+            throw new BusinessException(ErrorCode.STOCK_CONCURRENT_MODIFICATION);
+        }
+
+        int delta = targetQuantity - before;
+        if (delta == 0) {
+            throw new BusinessException(ErrorCode.STOCK_ADJUST_NO_CHANGE);
+        }
+
+        stock.adjust(delta); // 결과가 음수면 STOCK_INSUFFICIENT (엔티티 방어선)
+        int after = stock.getQuantity();
+
+        // ADJUST는 referenceId 없이 reason으로만 추적된다. reason 누락은 StockLog.of가 막는다(불변식).
+        StockLog log = StockLog.of(stock.getProduct(), StockChangeType.ADJUST,
+                delta, before, after, null, reason);
+        stockLogRepository.save(log);
     }
 
     /**

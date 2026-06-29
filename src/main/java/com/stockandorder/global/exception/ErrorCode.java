@@ -61,7 +61,9 @@ public enum ErrorCode {
     // Stock
     STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 상품의 재고 정보가 존재하지 않습니다."),
     STOCK_INSUFFICIENT(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
-    STOCK_ADJUST_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "재고 수동 조정 시 사유 입력은 필수입니다.");
+    STOCK_ADJUST_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "재고 수동 조정 시 사유 입력은 필수입니다."),
+    STOCK_ADJUST_NO_CHANGE(HttpStatus.BAD_REQUEST, "실사 수량이 현재고와 동일하여 조정할 내용이 없습니다."),
+    STOCK_CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "조회 이후 재고가 변경되었습니다. 현재고를 다시 확인한 뒤 조정해 주세요.");
 
     private final HttpStatus status;
     private final String message;

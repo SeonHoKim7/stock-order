@@ -3,6 +3,8 @@ package com.stockandorder.domain.stock.entity;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.enums.StockChangeType;
 import com.stockandorder.global.common.BaseTimeEntity;
+import com.stockandorder.global.exception.BusinessException;
+import com.stockandorder.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,6 +58,7 @@ public class StockLog extends BaseTimeEntity {
                               Long referenceId,
                               String reason) {
         validateDirection(changeType, changeQuantity);
+        validateAdjustReason(changeType, reason);
         if (afterQuantity != beforeQuantity + changeQuantity) {
             throw new IllegalArgumentException(
                     "after_quantity 는 before_quantity + change_quantity 와 일치해야 합니다.");
@@ -88,6 +91,15 @@ public class StockLog extends BaseTimeEntity {
                     throw new IllegalArgumentException("ADJUST 변동량은 0이 될 수 없습니다.");
                 }
             }
+        }
+    }
+
+    // ADJUST는 원본 문서(referenceId)가 없어 reason이 변동의 유일한 추적 단서다(I-4).
+    // 사유 없는 조정 로그는 존재 자체가 불가능하도록 생성 지점에서 막는다(불변식).
+    // DTO @NotBlank가 사용자 입력을 먼저 거르지만, 이 검증은 호출 경로와 무관하게 규칙을 보장한다.
+    private static void validateAdjustReason(StockChangeType type, String reason) {
+        if (type == StockChangeType.ADJUST && (reason == null || reason.isBlank())) {
+            throw new BusinessException(ErrorCode.STOCK_ADJUST_REASON_REQUIRED);
         }
     }
 }

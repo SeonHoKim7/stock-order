@@ -3,6 +3,8 @@ package com.stockandorder.domain.stock.entity;
 import com.stockandorder.domain.category.entity.Category;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.enums.StockChangeType;
+import com.stockandorder.global.exception.BusinessException;
+import com.stockandorder.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -100,6 +102,41 @@ class StockLogTest {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
                     0, 10, 10, null, "사유"))
                     .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("of() ADJUST 사유 불변식")
+    class AdjustReasonValidation {
+
+        @Test
+        @DisplayName("ADJUST: reason이 null이면 STOCK_ADJUST_REASON_REQUIRED 예외")
+        void of_adjustNullReason_throws() {
+            assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
+                    3, 10, 13, null, null))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.STOCK_ADJUST_REASON_REQUIRED));
+        }
+
+        @Test
+        @DisplayName("ADJUST: reason이 공백이면 STOCK_ADJUST_REASON_REQUIRED 예외")
+        void of_adjustBlankReason_throws() {
+            assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
+                    3, 10, 13, null, "   "))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.STOCK_ADJUST_REASON_REQUIRED));
+        }
+
+        @Test
+        @DisplayName("INBOUND/OUTBOUND: reason이 null이어도 정상(자동 변동은 사유 불필요)")
+        void of_autoChangeNullReason_ok() {
+            StockLog inbound = StockLog.of(product, StockChangeType.INBOUND, 5, 0, 5, 1L, null);
+            StockLog outbound = StockLog.of(product, StockChangeType.OUTBOUND, -2, 5, 3, 2L, null);
+
+            assertThat(inbound.getReason()).isNull();
+            assertThat(outbound.getReason()).isNull();
         }
     }
 

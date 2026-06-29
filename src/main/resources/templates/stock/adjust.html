@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>재고 수동 조정 - StockAndOrder</title>
+</head>
+<body>
+
+<h2>재고 수동 조정</h2>
+
+<table border="1">
+    <tr><th>상품코드</th><td th:text="${stock.productCode}"></td></tr>
+    <tr><th>상품명</th><td th:text="${stock.productName}"></td></tr>
+    <tr><th>현재고</th><td th:text="${stock.currentQuantity}"></td></tr>
+</table>
+
+<!-- 입력은 실사로 직접 센 '목표 수량'(절대값). 증감 계산은 서버가 한다. -->
+<form method="post" th:action="@{/stocks/{id}/adjust(id=${stock.productId})}" th:object="${form}">
+    <!-- 폼을 띄운 시점의 현재고를 seenQuantity로 함께 제출 → 서버가 낙관적 검증에 사용 -->
+    <input type="hidden" th:field="*{seenQuantity}" th:value="${stock.currentQuantity}">
+
+    <div>
+        <label>실사 수량(목표): <input type="number" th:field="*{targetQuantity}" min="0" required></label>
+        <span th:if="${#fields.hasErrors('targetQuantity')}" th:errors="*{targetQuantity}" style="color:red;"></span>
+    </div>
+    <div>
+        <label>사유: <textarea th:field="*{reason}" rows="3" required></textarea></label>
+        <span th:if="${#fields.hasErrors('reason')}" th:errors="*{reason}" style="color:red;"></span>
+    </div>
+
+    <button type="submit">조정</button>
+    <a th:href="@{/stocks}">취소</a>
+</form>
+
+</body>
+</html>
