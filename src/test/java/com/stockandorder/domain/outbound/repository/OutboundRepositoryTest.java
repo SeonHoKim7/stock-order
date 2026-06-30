@@ -198,4 +198,33 @@ class OutboundRepositoryTest {
             assertThat(result).isEmpty();
         }
     }
+
+    @Nested
+    @DisplayName("countByCreatedAtGreaterThanEqualAndCreatedAtLessThan (대시보드 오늘 출고)")
+    class CountByCreatedAt {
+
+        // 입고와 동일: outbound_date는 06-10~12지만 created_at은 저장 시각(오늘)이라 "오늘 출고"는 created_at 기준이다.
+
+        @Test
+        @DisplayName("오늘 0시~내일 0시 경계로 세면 오늘 등록된 출고 전체를 센다")
+        void count_todayRange_countsAll() {
+            LocalDate today = LocalDate.now();
+
+            long count = outboundRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                    today.atStartOfDay(), today.plusDays(1).atStartOfDay());
+
+            assertThat(count).isEqualTo(3);
+        }
+
+        @Test
+        @DisplayName("과거 날짜 경계로 세면 0건이다")
+        void count_pastRange_countsZero() {
+            LocalDate today = LocalDate.now();
+
+            long count = outboundRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                    today.minusDays(1).atStartOfDay(), today.atStartOfDay());
+
+            assertThat(count).isZero();
+        }
+    }
 }

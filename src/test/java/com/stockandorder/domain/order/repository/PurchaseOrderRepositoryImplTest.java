@@ -207,4 +207,13 @@ class PurchaseOrderRepositoryImplTest {
         assertThat(dto.getOrderNumber()).isNotNull();
         assertThat(dto.getOrderedAt()).isNotNull();
     }
+
+    @Test
+    @DisplayName("countByStatus는 해당 상태의 발주 건수를 센다 (대시보드 승인 대기 위젯)")
+    void countByStatus_countsMatchingStatus() {
+        // setUp: PENDING 2건(order1, order3), APPROVED 1건(order2)
+        assertThat(purchaseOrderRepository.countByStatus(OrderStatus.PENDING)).isEqualTo(2);
+        assertThat(purchaseOrderRepository.countByStatus(OrderStatus.APPROVED)).isEqualTo(1);
+        assertThat(purchaseOrderRepository.countByStatus(OrderStatus.CANCELLED)).isZero();
+    }
 }

@@ -1,6 +1,7 @@
 package com.stockandorder.domain.order.repository;
 
 import com.stockandorder.domain.order.entity.PurchaseOrder;
+import com.stockandorder.domain.order.enums.OrderStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -13,6 +14,9 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
 
     @Query("SELECT MAX(po.orderNumber) FROM PurchaseOrder po WHERE po.orderNumber LIKE :prefix%")
     Optional<String> findMaxOrderNumberByPrefix(@Param("prefix") String prefix);
+
+    // 대시보드 "승인 대기 발주" 위젯용. 상태 카운트는 시점과 무관한 현재 집계라 날짜 경계가 없다.
+    long countByStatus(OrderStatus status);
 
     /**
      * 입고 처리용 발주 조회.

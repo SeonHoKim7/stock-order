@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class InboundService {
@@ -54,5 +56,16 @@ public class InboundService {
         Inbound inbound = inboundRepository.findDetailById(inboundId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INBOUND_NOT_FOUND));
         return InboundResponse.from(inbound);
+    }
+
+    /**
+     * 오늘 등록된 입고 건수(대시보드 위젯용). "오늘"의 기준(created_at, [오늘 0시, 내일 0시))은
+     * 입고 도메인이 소유한다 — 대시보드가 이 규칙을 알 필요가 없도록 경계 계산을 여기에 둔다.
+     */
+    @Transactional(readOnly = true)
+    public long countToday() {
+        LocalDate today = LocalDate.now();
+        return inboundRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                today.atStartOfDay(), today.plusDays(1).atStartOfDay());
     }
 }

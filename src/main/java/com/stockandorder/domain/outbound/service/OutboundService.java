@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class OutboundService {
@@ -52,5 +54,15 @@ public class OutboundService {
         Outbound outbound = outboundRepository.findDetailById(outboundId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OUTBOUND_NOT_FOUND));
         return OutboundResponse.from(outbound);
+    }
+
+    /**
+     * 오늘 등록된 출고 건수(대시보드 위젯용). 입고와 동일하게 created_at 기준 [오늘 0시, 내일 0시)로 센다.
+     */
+    @Transactional(readOnly = true)
+    public long countToday() {
+        LocalDate today = LocalDate.now();
+        return outboundRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                today.atStartOfDay(), today.plusDays(1).atStartOfDay());
     }
 }

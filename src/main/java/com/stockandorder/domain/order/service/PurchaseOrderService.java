@@ -8,6 +8,7 @@ import com.stockandorder.domain.order.dto.PurchaseOrderResponse;
 import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
 import com.stockandorder.domain.order.entity.PurchaseOrder;
 import com.stockandorder.domain.order.entity.PurchaseOrderItem;
+import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.product.repository.ProductRepository;
@@ -71,6 +72,14 @@ public class PurchaseOrderService {
     public PurchaseOrderResponse getOrder(Long orderId) {
         PurchaseOrder order = findById(orderId);
         return PurchaseOrderResponse.from(order);
+    }
+
+    /**
+     * 승인 대기(PENDING) 발주 건수(대시보드 위젯용). 입고/출고의 "오늘"과 달리 시점 경계가 없는 현재 상태 집계다.
+     */
+    @Transactional(readOnly = true)
+    public long countPending() {
+        return purchaseOrderRepository.countByStatus(OrderStatus.PENDING);
     }
 
     public void approveOrder(Long orderId, Long approverId) {
