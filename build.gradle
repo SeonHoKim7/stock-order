@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '3.5.11'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -47,4 +48,26 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+		xml.required = false
+		csv.required = false
+	}
+	// 커버리지 대상에서 "내가 짜지 않은 코드"만 제외한다.
+	// QueryDSL 자동생성(Q*), 애플리케이션 진입점, Spring 설정 클래스 → 테스트 대상 아님.
+	// (컨트롤러/DTO 등 직접 작성한 코드는 숨기지 않고 그대로 집계한다)
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					'**/Q*.class',
+					'**/*Application*',
+					'**/config/**'
+			])
+		}))
+	}
 }

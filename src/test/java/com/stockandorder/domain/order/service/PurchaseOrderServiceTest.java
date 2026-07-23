@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import org.springframework.data.domain.Page;
@@ -45,6 +46,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class PurchaseOrderServiceTest {
@@ -151,6 +155,60 @@ class PurchaseOrderServiceTest {
             ArgumentCaptor<PurchaseOrder> captor = ArgumentCaptor.forClass(PurchaseOrder.class);
             then(purchaseOrderRepository).should().save(captor.capture());
             assertThat(captor.getValue().getOrderNumber()).endsWith("-006");
+        }
+    }
+
+    // saveWithRetry (발주번호 충돌 재시도)
+
+    @Nested
+    @DisplayName("saveWithRetry (발주번호 충돌 재시도)")
+    class SaveWithRetry {
+
+        @Test
+        @DisplayName("저장 중 발주번호 UNIQUE 충돌이 한 번 나면 번호를 재발급해 재시도하여 성공한다")
+        void createOrder_numberCollisionOnce_retriesAndSucceeds() {
+            given(supplierRepository.findById(1L)).willReturn(Optional.of(purchaseSupplier));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(requester));
+            given(productRepository.findById(10L)).willReturn(Optional.of(product1));
+            given(purchaseOrderRepository.findMaxOrderNumberByPrefix(anyString())).willReturn(Optional.empty());
+            given(purchaseOrderRepository.save(any(PurchaseOrder.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
+            // 첫 flush 는 UNIQUE 충돌, 두 번째 flush 는 성공
+            willThrow(new DataIntegrityViolationException("발주번호 중복"))
+                    .willDoNothing()
+                    .given(purchaseOrderRepository).flush();
+
+            PurchaseOrderCreateRequest request = createRequest(1L, null,
+                    List.of(createItemRequest(10L, 1)));
+
+            purchaseOrderService.createOrder(request, 1L);
+
+            then(purchaseOrderRepository).should(times(2)).save(any(PurchaseOrder.class));
+            then(purchaseOrderRepository).should(times(2)).flush();
+        }
+
+        @Test
+        @DisplayName("최대 재시도 횟수(3)를 모두 소진하면 INTERNAL_SERVER_ERROR로 실패한다")
+        void createOrder_numberCollisionExhausted_throwsException() {
+            given(supplierRepository.findById(1L)).willReturn(Optional.of(purchaseSupplier));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(requester));
+            given(productRepository.findById(10L)).willReturn(Optional.of(product1));
+            given(purchaseOrderRepository.findMaxOrderNumberByPrefix(anyString())).willReturn(Optional.empty());
+            given(purchaseOrderRepository.save(any(PurchaseOrder.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
+            // flush 가 매번 충돌 → 3회 모두 실패
+            willThrow(new DataIntegrityViolationException("계속 충돌"))
+                    .given(purchaseOrderRepository).flush();
+
+            PurchaseOrderCreateRequest request = createRequest(1L, null,
+                    List.of(createItemRequest(10L, 1)));
+
+            assertThatThrownBy(() -> purchaseOrderService.createOrder(request, 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR));
+
+            then(purchaseOrderRepository).should(times(3)).save(any(PurchaseOrder.class));
         }
     }
 
