@@ -1,4 +1,8 @@
 spring:
+  # 테스트는 Redis 없이 돌아야 한다 (테스트 리소스의 application.yml이 main의 것을 대체하므로 여기에도 명시)
+  session:
+    store-type: none
+
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
     driver-class-name: org.h2.Driver

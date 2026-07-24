@@ -22,16 +22,34 @@ services:
       retries: 20
       start_period: 30s
 
+  redis:
+    image: redis:7-alpine
+    container_name: stock-order-redis
+    # 세션 저장소이므로 앱 재시작에는 견뎌야 하지만, Redis 자체 재시작까지 견딜 필요는 없어
+    # 별도 볼륨은 두지 않는다. 유실 시 재로그인으로 회복 가능한 데이터다.
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   app:
     build: .
     container_name: stock-order-app
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_SESSION_STORE_TYPE: redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       SERVER_FORWARD_HEADERS_STRATEGY: framework
       TZ: Asia/Seoul
     ports:

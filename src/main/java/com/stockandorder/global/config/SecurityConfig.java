@@ -17,8 +17,16 @@ import org.springframework.security.web.SecurityFilterChain;
  * [인증 방식 선택 근거]
  * - JWT: Stateless하여 수평 확장에 유리하지만, 토큰 즉시 무효화(강제 로그아웃, 계정 비활성화 즉시 반영)가
  *   어렵다. 이 시스템은 사내 B2B이므로 관리자가 계정을 비활성화하면 즉시 세션을 끊을 수 있어야 한다.
- * - Session: 서버 측 세션이므로 즉시 무효화 가능. 현재 단일 서버 환경이므로 세션 불일치 문제 없음.
- *   → HttpSession 기반 세션 인증 채택. 향후 스케일아웃 필요 시 Redis Session으로 전환 예정임.
+ * - Session: 서버 측 세션이므로 즉시 무효화 가능. → HttpSession 기반 세션 인증 채택.
+ *
+ * [세션 저장소를 Redis로 분리한 이유]
+ * 처음에는 톰캣 인메모리 세션을 사용했다. 단일 서버라 문제가 없었으나, 컨테이너로 배포하기 시작하면서
+ * 앱을 재시작할 때마다 프로세스 메모리에 있던 세션이 함께 사라져 접속 중인 사용자가 전원 로그아웃되었다.
+ * 배포가 잦아질수록 악화되는 구조였다. 세션의 수명을 앱 프로세스의 수명과 분리해야 했고,
+ * 그래서 저장소를 Redis로 옮겼다. 수평 확장 시 sticky session이 불필요해지는 것과,
+ * 세션 키를 직접 제거해 강제 로그아웃을 구현할 수 있는 것은 그에 따라온 이점이다.
+ * 저장소만 교체했을 뿐 인증 흐름 자체는 바뀌지 않는다. 단, 세션에 담기는 객체는 직렬화 대상이 되므로
+ * 인증 주체 설계가 달라진다. {@link com.stockandorder.global.auth.CustomUserDetails} 참고.
  *
  * [URL 접근 제어 전략]
  * - /admin/** : ADMIN 전용 (회원 관리)
@@ -73,7 +81,9 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
+                        // Spring Session이 세션 저장소를 Redis로 대체하면서 쿠키명이 JSESSIONID가 아닌 SESSION이 된다.
+                        // 저장소를 바꿔도 쿠키명은 그대로일 것이라 가정하면 로그아웃 시 쿠키가 남는다.
+                        .deleteCookies("SESSION")
                 );
 
         return http.build();
