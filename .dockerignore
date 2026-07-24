@@ -1,0 +1,8 @@
+.git
+.gradle
+build/
+src/main/generated/
+.env
+**/secret-application.yml
+HELP.md
+.idea

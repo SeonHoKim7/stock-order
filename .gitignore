@@ -41,3 +41,6 @@ src/main/generated/
 
 ### Secrets ###
 secret-application.yml
+
+### Docker env ###
+.env
