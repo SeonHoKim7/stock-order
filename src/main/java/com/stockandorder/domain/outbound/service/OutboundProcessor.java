@@ -12,14 +12,13 @@ import com.stockandorder.domain.stock.service.StockService;
 import com.stockandorder.domain.supplier.entity.Supplier;
 import com.stockandorder.domain.supplier.enums.SupplierType;
 import com.stockandorder.domain.supplier.repository.SupplierRepository;
+import com.stockandorder.global.common.DocumentNumberGenerator;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -38,13 +37,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OutboundProcessor {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final String DOCUMENT_PREFIX = "OUT";
 
     private final OutboundRepository outboundRepository;
     private final SupplierRepository supplierRepository;
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
     private final StockService stockService;
+    private final DocumentNumberGenerator documentNumberGenerator;
 
     @Transactional
     public Long createOnce(OutboundCreateRequest request, Long processorId) {
@@ -66,7 +66,8 @@ public class OutboundProcessor {
 
         // 3. Outbound를 먼저 저장해 id를 확보한다(StockLog.referenceId에 넣어야 하는 저장 순서 의존성).
         //    flush로 번호 UNIQUE 충돌도 조기에 감지한다.
-        String outboundNumber = generateOutboundNumber();
+        String outboundNumber = documentNumberGenerator.generate(
+                DOCUMENT_PREFIX, outboundRepository::findMaxOutboundNumberByPrefix);
         Outbound outbound = Outbound.create(outboundNumber, supplier, processor,
                 request.getOutboundDate(), request.getNote(), outboundItems);
         outboundRepository.save(outbound);
@@ -102,17 +103,6 @@ public class OutboundProcessor {
         if (distinct != items.size()) {
             throw new BusinessException(ErrorCode.OUTBOUND_DUPLICATE_PRODUCT);
         }
-    }
-
-    // F-1: 발주/입고와 동일한 번호 전략(OUT-yyyyMMdd-NNN). 형식은 복붙, 충돌 재시도만 공통화 대상(절충).
-    private String generateOutboundNumber() {
-        String prefix = "OUT-" + LocalDate.now().format(DATE_FORMAT) + "-";
-        return outboundRepository.findMaxOutboundNumberByPrefix(prefix)
-                .map(max -> {
-                    int seq = Integer.parseInt(max.substring(max.lastIndexOf("-") + 1));
-                    return prefix + String.format("%03d", seq + 1);
-                })
-                .orElse(prefix + "001");
     }
 
     private Product findProduct(Long productId) {

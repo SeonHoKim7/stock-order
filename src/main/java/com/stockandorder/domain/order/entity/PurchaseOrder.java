@@ -111,10 +111,6 @@ public class PurchaseOrder extends BaseTimeEntity {
         this.status = OrderStatus.CANCELLED;
     }
 
-    public void changeOrderNumber(String orderNumber) {
-        this.orderNumber = orderNumber;
-    }
-
     /** 입고 가능한 발주인지 검증. 승인(APPROVED) 또는 부분 입고 진행 중(IN_PROGRESS)만 허용. */
     public void validateReceivable() {
         if (this.status != OrderStatus.APPROVED && this.status != OrderStatus.IN_PROGRESS) {

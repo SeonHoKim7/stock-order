@@ -92,7 +92,7 @@ class OutboundServiceTest {
         }
 
         @Test
-        @DisplayName("최대 재시도 횟수(3)를 모두 소진하면 INTERNAL_SERVER_ERROR로 실패한다")
+        @DisplayName("최대 재시도 횟수(3)를 모두 소진하면 CONCURRENCY_RETRY_EXHAUSTED로 실패한다")
         void createOutbound_exhaustsRetries_throws() {
             given(outboundProcessor.createOnce(any(), any()))
                     .willThrow(new DataIntegrityViolationException("계속 충돌"));
@@ -100,7 +100,7 @@ class OutboundServiceTest {
             assertThatThrownBy(() -> outboundService.createOutbound(request, 5L))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
-                            .isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR));
+                            .isEqualTo(ErrorCode.CONCURRENCY_RETRY_EXHAUSTED));
             then(outboundProcessor).should(times(3)).createOnce(request, 5L);
         }
     }

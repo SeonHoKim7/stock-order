@@ -11,6 +11,9 @@ public enum ErrorCode {
     // 공통
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
+    // 문서번호 UNIQUE 충돌·낙관적 락 충돌로 재시도 한도를 소진한 경우.
+    // 서버 결함이 아니라 동시 처리로 인한 일시적 실패이므로 500이 아닌 409로 구분한다.
+    CONCURRENCY_RETRY_EXHAUSTED(HttpStatus.CONFLICT, "다른 처리와 충돌하여 완료하지 못했습니다. 잠시 후 다시 시도해 주세요."),
 
     // 인증/인가
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),

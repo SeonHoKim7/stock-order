@@ -39,11 +39,11 @@ public class InboundService {
                 return inboundProcessor.createOnce(request, processorId);
             } catch (OptimisticLockingFailureException | DataIntegrityViolationException e) {
                 if (attempt == MAX_RETRY - 1) {
-                    throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+                    throw new BusinessException(ErrorCode.CONCURRENCY_RETRY_EXHAUSTED);
                 }
             }
         }
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        throw new BusinessException(ErrorCode.CONCURRENCY_RETRY_EXHAUSTED);
     }
 
     @Transactional(readOnly = true)

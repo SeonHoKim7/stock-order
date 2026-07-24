@@ -7,14 +7,8 @@ import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
 import com.stockandorder.domain.order.dto.PurchaseOrderResponse;
 import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
 import com.stockandorder.domain.order.entity.PurchaseOrder;
-import com.stockandorder.domain.order.entity.PurchaseOrderItem;
 import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
-import com.stockandorder.domain.product.entity.Product;
-import com.stockandorder.domain.product.repository.ProductRepository;
-import com.stockandorder.domain.supplier.entity.Supplier;
-import com.stockandorder.domain.supplier.enums.SupplierType;
-import com.stockandorder.domain.supplier.repository.SupplierRepository;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -24,43 +18,35 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PurchaseOrderService {
 
     private static final int MAX_RETRY = 3;
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
+    private final PurchaseOrderProcessor purchaseOrderProcessor;
     private final PurchaseOrderRepository purchaseOrderRepository;
-    private final SupplierRepository supplierRepository;
     private final MemberRepository memberRepository;
-    private final ProductRepository productRepository;
 
+    /**
+     * 발주 등록. 발주번호 UNIQUE 충돌 시 새 트랜잭션으로 재시도한다.
+     *
+     * 이 메서드에는 트랜잭션을 걸지 않는다. 충돌이 난 트랜잭션은 rollback-only로 마킹되어
+     * 같은 트랜잭션 안에서는 다시 시도할 수 없기 때문에, 재시도는 반드시 트랜잭션 경계 밖에서
+     * 이루어져야 한다. 매 시도는 PurchaseOrderProcessor.createOnce가 새 트랜잭션으로 수행하며,
+     * 번호도 그 안에서 다시 채번된다. 저경합이라 재시도는 드물고, 한도 초과 시 실패로 처리한다.
+     */
     public Long createOrder(PurchaseOrderCreateRequest request, Long requesterId) {
-        Supplier supplier = findSupplier(request.getSupplierId());
-        validateSupplierForPurchase(supplier);
-
-        Member requester = findMember(requesterId);
-
-        String orderNumber = generateOrderNumber();
-        PurchaseOrder order = PurchaseOrder.create(orderNumber, supplier, requester, request.getNote());
-
-        for (PurchaseOrderCreateRequest.ItemRequest itemReq : request.getItems()) {
-            Product product = findProduct(itemReq.getProductId());
-            PurchaseOrderItem item = PurchaseOrderItem.create(
-                    product,
-                    itemReq.getQuantity(),
-                    product.getPurchasePrice()
-            );
-            order.addItem(item);
+        for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
+            try {
+                return purchaseOrderProcessor.createOnce(request, requesterId);
+            } catch (DataIntegrityViolationException e) {
+                if (attempt == MAX_RETRY - 1) {
+                    throw new BusinessException(ErrorCode.CONCURRENCY_RETRY_EXHAUSTED);
+                }
+            }
         }
-
-        PurchaseOrder saved = saveWithRetry(order);
-        return saved.getOrderId();
+        throw new BusinessException(ErrorCode.CONCURRENCY_RETRY_EXHAUSTED);
     }
 
     @Transactional(readOnly = true)
@@ -82,6 +68,7 @@ public class PurchaseOrderService {
         return purchaseOrderRepository.countByStatus(OrderStatus.PENDING);
     }
 
+    @Transactional
     public void approveOrder(Long orderId, Long approverId) {
         PurchaseOrder order = findById(orderId);
         Member approver = findMember(approverId);
@@ -89,6 +76,7 @@ public class PurchaseOrderService {
         order.approve(approver);
     }
 
+    @Transactional
     public void rejectOrder(Long orderId, Long approverId, String rejectReason) {
         PurchaseOrder order = findById(orderId);
         Member approver = findMember(approverId);
@@ -96,6 +84,7 @@ public class PurchaseOrderService {
         order.reject(approver, rejectReason);
     }
 
+    @Transactional
     public void cancelOrder(Long orderId, Long requesterId) {
         PurchaseOrder order = findById(orderId);
         validateRequester(order, requesterId);
@@ -114,59 +103,13 @@ public class PurchaseOrderService {
         }
     }
 
-    private String generateOrderNumber() {
-        String prefix = "PO-" + LocalDate.now().format(DATE_FORMAT) + "-";
-        return purchaseOrderRepository.findMaxOrderNumberByPrefix(prefix)
-                .map(max -> {
-                    int seq = Integer.parseInt(max.substring(max.lastIndexOf("-") + 1));
-                    return prefix + String.format("%03d", seq + 1);
-                })
-                .orElse(prefix + "001");
-    }
-
-    private PurchaseOrder saveWithRetry(PurchaseOrder order) {
-        for (int attempt = 0; attempt < MAX_RETRY; attempt++) {
-            try {
-                PurchaseOrder saved = purchaseOrderRepository.save(order);
-                purchaseOrderRepository.flush();
-                return saved;
-            } catch (DataIntegrityViolationException e) {
-                if (attempt == MAX_RETRY - 1) {
-                    throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-                }
-                String newOrderNumber = generateOrderNumber();
-                order.changeOrderNumber(newOrderNumber);
-            }
-        }
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
-
-    private void validateSupplierForPurchase(Supplier supplier) {
-        if (!supplier.isActive()) {
-            throw new BusinessException(ErrorCode.SUPPLIER_INACTIVE);
-        }
-        if (supplier.getSupplierType() == SupplierType.SALES) {
-            throw new BusinessException(ErrorCode.SUPPLIER_TYPE_INVALID);
-        }
-    }
-
     private PurchaseOrder findById(Long orderId) {
         return purchaseOrderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
 
-    private Supplier findSupplier(Long supplierId) {
-        return supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SUPPLIER_NOT_FOUND));
-    }
-
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    private Product findProduct(Long productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 }

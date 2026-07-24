@@ -10,14 +10,13 @@ import com.stockandorder.domain.order.entity.PurchaseOrder;
 import com.stockandorder.domain.order.entity.PurchaseOrderItem;
 import com.stockandorder.domain.order.repository.PurchaseOrderRepository;
 import com.stockandorder.domain.stock.service.StockService;
+import com.stockandorder.global.common.DocumentNumberGenerator;
 import com.stockandorder.global.exception.BusinessException;
 import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -33,12 +32,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InboundProcessor {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final String DOCUMENT_PREFIX = "IN";
 
     private final InboundRepository inboundRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final MemberRepository memberRepository;
     private final StockService stockService;
+    private final DocumentNumberGenerator documentNumberGenerator;
 
     @Transactional
     public Long createOnce(InboundCreateRequest request, Long processorId) {
@@ -61,7 +61,8 @@ public class InboundProcessor {
 
         // 3. Inbound를 먼저 저장해 id를 확보한다(D-2: StockLog.referenceId에 넣어야 하는 저장 순서 의존성).
         //    flush로 번호 UNIQUE 충돌도 조기에 감지한다.
-        String inboundNumber = generateInboundNumber();
+        String inboundNumber = documentNumberGenerator.generate(
+                DOCUMENT_PREFIX, inboundRepository::findMaxInboundNumberByPrefix);
         Inbound inbound = Inbound.create(inboundNumber, order, processor,
                 request.getInboundDate(), request.getNote(), inboundItems);
         inboundRepository.save(inbound);
@@ -87,17 +88,6 @@ public class InboundProcessor {
         order.refreshStatusByReceipt();
 
         return inbound.getInboundId();
-    }
-
-    // F-1: 발주번호와 동일한 전략(IN-yyyyMMdd-NNN). 출고까지 만들어 셋이 같은지 확인된 뒤 공통화 검토.
-    private String generateInboundNumber() {
-        String prefix = "IN-" + LocalDate.now().format(DATE_FORMAT) + "-";
-        return inboundRepository.findMaxInboundNumberByPrefix(prefix)
-                .map(max -> {
-                    int seq = Integer.parseInt(max.substring(max.lastIndexOf("-") + 1));
-                    return prefix + String.format("%03d", seq + 1);
-                })
-                .orElse(prefix + "001");
     }
 
     // H-2: 한 입고 요청 안에 같은 발주 항목(orderItemId)이 두 번 이상 나타나면 차단한다.

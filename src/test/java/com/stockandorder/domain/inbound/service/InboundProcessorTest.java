@@ -56,6 +56,10 @@ class InboundProcessorTest {
     private MemberRepository memberRepository;
     @Mock
     private StockService stockService;
+    // 채번 규칙은 실제 구현을 태워야 번호 형식을 검증할 수 있으므로 mock이 아닌 실제 객체를 쓴다.
+    @org.mockito.Spy
+    private com.stockandorder.global.common.DocumentNumberGenerator documentNumberGenerator =
+            new com.stockandorder.global.common.DocumentNumberGenerator();
 
     private static final long ORDER_ID = 1L;
     private static final long PROCESSOR_ID = 5L;
