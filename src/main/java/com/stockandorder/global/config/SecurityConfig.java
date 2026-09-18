@@ -83,7 +83,8 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         // Spring Session이 세션 저장소를 Redis로 대체하면서 쿠키명이 JSESSIONID가 아닌 SESSION이 된다.
                         // 저장소를 바꿔도 쿠키명은 그대로일 것이라 가정하면 로그아웃 시 쿠키가 남는다.
-                        .deleteCookies("SESSION")
+                        // 로컬(톰캣 인메모리)은 JSESSIONID, docker 프로파일(Redis 세션)은 SESSION을 쓴다.
+                        .deleteCookies("SESSION", "JSESSIONID")
                 );
 
         return http.build();

@@ -6,11 +6,13 @@ spring:
     import: optional:classpath:secret-application.yml
 
   # 세션 저장소는 배포 환경의 속성이지 애플리케이션의 속성이 아니다.
-  # 로컬 개발은 Redis 없이 톰캣 인메모리 세션으로 돌아가야 하므로 기본값을 none으로 둔다.
-  # 컨테이너 배포 시 docker-compose가 SPRING_SESSION_STORE_TYPE=redis로 덮어쓴다.
-  # (spring-session-data-redis가 클래스패스에 있으면 기본이 redis로 잡혀 로컬 기동이 깨진다)
-  session:
-    store-type: none
+  # spring-session-data-redis가 클래스패스에 있으면 Redis 세션 자동설정이 그대로 켜지므로,
+  # 로컬(프로파일 없음)에서는 세션 자동설정 자체를 제외해 톰캣 인메모리 세션으로 돌린다.
+  # 컨테이너 배포는 docker 프로파일(application-docker.yml)에서 이 제외를 걷어내 Redis 세션을 쓴다.
+  # (Boot 3.0에서 spring.session.store-type이 제거되어 그 속성으로는 끌 수 없다)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.session.SessionAutoConfiguration
 
   jpa:
     hibernate:
