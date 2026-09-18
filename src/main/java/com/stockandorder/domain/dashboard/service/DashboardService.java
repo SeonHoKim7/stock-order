@@ -2,6 +2,7 @@ package com.stockandorder.domain.dashboard.service;
 
 import com.stockandorder.domain.dashboard.dto.DashboardResponse;
 import com.stockandorder.domain.inbound.service.InboundService;
+import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
 import com.stockandorder.domain.order.service.PurchaseOrderService;
 import com.stockandorder.domain.outbound.service.OutboundService;
 import com.stockandorder.domain.stock.dto.StockListResponse;
@@ -9,6 +10,8 @@ import com.stockandorder.domain.stock.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 여러 도메인의 요약을 한 화면용으로 모으는 책임만 갖는다(SRP). 컨트롤러가 도메인마다 직접
@@ -26,6 +29,8 @@ public class DashboardService {
 
     // 대시보드 경고 위젯에 보여줄 상위 건수
     private static final int LOW_STOCK_PREVIEW_LIMIT = 5;
+    // 입고 대기 발주 위젯에 보여줄 상위 건수
+    private static final int RECEIVABLE_ORDER_PREVIEW_LIMIT = 5;
 
     private final StockService stockService;
     private final InboundService inboundService;
@@ -36,11 +41,16 @@ public class DashboardService {
         // 경고 건수(getTotalElements)와 상위 N개(getContent)가 한 Page에 함께 담겨 온다.
         Page<StockListResponse> lowStock = stockService.getLowStockPreview(LOW_STOCK_PREVIEW_LIMIT);
 
+        // 입고 대기(승인·진행중) 발주: 전체 목록에서 건수와 상위 N개를 뽑는다.
+        List<PurchaseOrderListResponse> receivable = purchaseOrderService.getReceivableOrders();
+
         return new DashboardResponse(
                 inboundService.countToday(),
                 outboundService.countToday(),
                 purchaseOrderService.countPending(),
                 lowStock.getTotalElements(),
-                lowStock.getContent());
+                lowStock.getContent(),
+                receivable.size(),
+                receivable.stream().limit(RECEIVABLE_ORDER_PREVIEW_LIMIT).toList());
     }
 }

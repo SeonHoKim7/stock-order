@@ -4,16 +4,12 @@ import com.stockandorder.domain.inbound.dto.InboundCreateRequest;
 import com.stockandorder.domain.inbound.dto.InboundSearchCondition;
 import com.stockandorder.domain.inbound.service.InboundService;
 import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
-import com.stockandorder.domain.order.dto.PurchaseOrderSearchCondition;
-import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.service.PurchaseOrderService;
 import com.stockandorder.domain.supplier.service.SupplierService;
 import com.stockandorder.global.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -91,15 +86,9 @@ public class InboundController {
         }
     }
 
-    // 입고 가능한 발주 = 승인(APPROVED) 또는 진행중(IN_PROGRESS). 두 상태를 각각 조회해 합친다.
+    // 입고 가능한 발주 = 승인(APPROVED) 또는 진행중(IN_PROGRESS).
+    // 정의는 PurchaseOrderService.getReceivableOrders() 한 곳에 두고, 대시보드 "입고 대기" 위젯과 공유한다.
     private List<PurchaseOrderListResponse> receivableOrders() {
-        Pageable pageable = PageRequest.of(0, 1000, Sort.by(Sort.Direction.DESC, "orderedAt"));
-        List<PurchaseOrderListResponse> result = new ArrayList<>();
-        for (OrderStatus status : List.of(OrderStatus.APPROVED, OrderStatus.IN_PROGRESS)) {
-            PurchaseOrderSearchCondition condition = new PurchaseOrderSearchCondition();
-            condition.setStatus(status);
-            result.addAll(purchaseOrderService.searchOrders(condition, pageable).getContent());
-        }
-        return result;
+        return purchaseOrderService.getReceivableOrders();
     }
 }

@@ -1,5 +1,6 @@
 package com.stockandorder.domain.dashboard.dto;
 
+import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
 import com.stockandorder.domain.stock.dto.StockListResponse;
 import lombok.Getter;
 
@@ -21,13 +22,19 @@ public class DashboardResponse {
     private final long pendingOrderCount;
     private final long lowStockCount;
     private final List<StockListResponse> lowStockPreview;
+    // 입고 대기(승인·진행중) 발주: 전체 건수 + 상위 미리보기
+    private final long receivableOrderCount;
+    private final List<PurchaseOrderListResponse> receivableOrderPreview;
 
     public DashboardResponse(long todayInboundCount, long todayOutboundCount, long pendingOrderCount,
-                             long lowStockCount, List<StockListResponse> lowStockPreview) {
+                             long lowStockCount, List<StockListResponse> lowStockPreview,
+                             long receivableOrderCount, List<PurchaseOrderListResponse> receivableOrderPreview) {
         this.todayInboundCount = todayInboundCount;
         this.todayOutboundCount = todayOutboundCount;
         this.pendingOrderCount = pendingOrderCount;
         this.lowStockCount = lowStockCount;
         this.lowStockPreview = lowStockPreview;
+        this.receivableOrderCount = receivableOrderCount;
+        this.receivableOrderPreview = receivableOrderPreview;
     }
 }

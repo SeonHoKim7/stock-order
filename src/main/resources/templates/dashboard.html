@@ -4,39 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <title>대시보드 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>대시보드</h2>
 
-<p>안녕하세요, <span th:text="${memberName}"></span>님 (<span th:text="${role}"></span>)</p>
+<p class="muted">안녕하세요, <span th:text="${memberName}"></span>님 (<span th:text="${role}"></span>)</p>
 
-<form th:action="@{/logout}" method="post">
-    <button type="submit">로그아웃</button>
-</form>
 
 <!-- 요약 위젯: 오늘의 입고/출고 건수 + 승인 대기 발주 건수 -->
-<div style="display:flex; gap:16px; margin:16px 0;">
+<div style="display:flex; gap:16px; margin:20px 0; flex-wrap:wrap;">
     <!-- "오늘"은 등록 시각(created_at) 기준이다 (입고/출고 모두 동일 기준으로 맞춤) -->
-    <div style="border:1px solid #ccc; padding:12px;">
-        <div>오늘 입고</div>
-        <strong th:text="${dashboard.todayInboundCount}">0</strong>건
-        <div><a th:href="@{/inbounds}">입고 목록</a></div>
+    <div class="card" style="flex:1; min-width:180px;">
+        <div class="muted">오늘 입고</div>
+        <div style="font-size:28px; font-weight:700; margin:4px 0;">
+            <span th:text="${dashboard.todayInboundCount}">0</span><span style="font-size:15px; color:var(--text-weak);"> 건</span>
+        </div>
+        <a th:href="@{/inbounds}">입고 목록 →</a>
     </div>
 
-    <div style="border:1px solid #ccc; padding:12px;">
-        <div>오늘 출고</div>
-        <strong th:text="${dashboard.todayOutboundCount}">0</strong>건
-        <div><a th:href="@{/outbounds}">출고 목록</a></div>
+    <div class="card" style="flex:1; min-width:180px;">
+        <div class="muted">오늘 출고</div>
+        <div style="font-size:28px; font-weight:700; margin:4px 0;">
+            <span th:text="${dashboard.todayOutboundCount}">0</span><span style="font-size:15px; color:var(--text-weak);"> 건</span>
+        </div>
+        <a th:href="@{/outbounds}">출고 목록 →</a>
     </div>
 
     <!-- 승인 대기 위젯은 승인 권한이 있는 MANAGER/ADMIN에게만 노출한다(못 누르는 숫자는 보여주지 않음).
          단, 이는 화면 정리일 뿐이며 승인 기능 자체는 서버 권한으로 막혀 있다. -->
-    <div sec:authorize="hasAnyRole('ADMIN','MANAGER')" style="border:1px solid #ccc; padding:12px;">
-        <div>승인 대기 발주</div>
-        <strong th:text="${dashboard.pendingOrderCount}">0</strong>건
-        <div><a th:href="@{/orders(status='PENDING')}">승인 대기 목록</a></div>
+    <div sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="card" style="flex:1; min-width:180px;">
+        <div class="muted">승인 대기 발주</div>
+        <div style="font-size:28px; font-weight:700; margin:4px 0;">
+            <span th:text="${dashboard.pendingOrderCount}">0</span><span style="font-size:15px; color:var(--text-weak);"> 건</span>
+        </div>
+        <a th:href="@{/orders(status='PENDING')}">승인 대기 목록 →</a>
     </div>
+</div>
+
+<!-- 입고 대기 발주 위젯(MANAGER+): 승인·진행중이라 입고를 기다리는 발주. 각 행에서 바로 입고 처리로 이동.
+     입고 처리 권한이 MANAGER+ 뿐이므로 위젯도 그 역할에만 노출한다(못 누르는 목록은 보여주지 않음). -->
+<div sec:authorize="hasAnyRole('ADMIN','MANAGER')" style="margin-top:24px;">
+    <h3>입고 대기 발주 (<span th:text="${dashboard.receivableOrderCount}">0</span>건)</h3>
+
+    <table th:if="${!dashboard.receivableOrderPreview.isEmpty()}">
+        <thead>
+            <tr>
+                <th>발주번호</th>
+                <th>거래처</th>
+                <th>상태</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="po : ${dashboard.receivableOrderPreview}">
+                <td><a th:href="@{/orders/{id}(id=${po.orderId})}" th:text="${po.orderNumber}"></a></td>
+                <td th:text="${po.supplierName}"></td>
+                <td><span class="badge badge--warn" th:text="${po.statusLabel}"></span></td>
+                <td><a th:href="@{/inbounds/new(orderId=${po.orderId})}">입고 처리 →</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p th:if="${dashboard.receivableOrderPreview.isEmpty()}">입고 대기 중인 발주가 없습니다.</p>
+
+    <a th:if="${dashboard.receivableOrderCount > 0}" th:href="@{/inbounds/new}">입고 등록 화면으로 →</a>
 </div>
 
 <!-- 안전 재고 미달 경고 위젯: 건수 + 상위 N개 미리보기 + 전체보기 -->
@@ -57,7 +92,7 @@
                 <td><a th:href="@{/products/{id}(id=${item.productId})}" th:text="${item.productName}"></a></td>
                 <td th:text="${item.quantity}"></td>
                 <td th:text="${item.safetyStock}"></td>
-                <td th:text="${item.statusLabel}" style="color:red; font-weight:bold;"></td>
+                <td><span class="badge badge--danger" th:text="${item.statusLabel}"></span></td>
             </tr>
         </tbody>
     </table>

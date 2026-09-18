@@ -14,9 +14,14 @@ import com.stockandorder.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +63,23 @@ public class PurchaseOrderService {
     public PurchaseOrderResponse getOrder(Long orderId) {
         PurchaseOrder order = findById(orderId);
         return PurchaseOrderResponse.from(order);
+    }
+
+    /**
+     * 입고 가능한(=입고를 기다리는) 발주 목록. 승인(APPROVED) 또는 진행중(IN_PROGRESS) 두 상태를 합친다.
+     * 입고 등록 폼과 대시보드 "입고 대기" 위젯이 공유하는 단일 출처다.
+     * (검색 조건이 상태 하나만 받으므로 두 상태를 각각 조회해 합친다.)
+     */
+    @Transactional(readOnly = true)
+    public List<PurchaseOrderListResponse> getReceivableOrders() {
+        Pageable pageable = PageRequest.of(0, 1000, Sort.by(Sort.Direction.DESC, "orderedAt"));
+        List<PurchaseOrderListResponse> result = new ArrayList<>();
+        for (OrderStatus status : List.of(OrderStatus.APPROVED, OrderStatus.IN_PROGRESS)) {
+            PurchaseOrderSearchCondition condition = new PurchaseOrderSearchCondition();
+            condition.setStatus(status);
+            result.addAll(searchOrders(condition, pageable).getContent());
+        }
+        return result;
     }
 
     /**

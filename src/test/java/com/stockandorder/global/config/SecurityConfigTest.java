@@ -66,7 +66,7 @@ class SecurityConfigTest {
         CustomUserDetails userDetails = staffUserDetails();
         // 위젯이 템플릿에서 렌더되므로 빈 응답(경고 미리보기는 빈 리스트)을 반환하도록 stub
         given(dashboardService.getDashboard())
-                .willReturn(new DashboardResponse(0L, 0L, 0L, 0L, List.of()));
+                .willReturn(new DashboardResponse(0L, 0L, 0L, 0L, List.of(), 0L, List.of()));
 
         mockMvc.perform(get("/dashboard").with(user(userDetails)))
                 .andExpect(status().isOk());

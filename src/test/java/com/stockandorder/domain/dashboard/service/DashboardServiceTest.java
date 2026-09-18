@@ -2,6 +2,8 @@ package com.stockandorder.domain.dashboard.service;
 
 import com.stockandorder.domain.dashboard.dto.DashboardResponse;
 import com.stockandorder.domain.inbound.service.InboundService;
+import com.stockandorder.domain.order.dto.PurchaseOrderListResponse;
+import com.stockandorder.domain.order.enums.OrderStatus;
 import com.stockandorder.domain.order.service.PurchaseOrderService;
 import com.stockandorder.domain.outbound.service.OutboundService;
 import com.stockandorder.domain.stock.dto.StockListResponse;
@@ -16,7 +18,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -46,10 +51,18 @@ class DashboardServiceTest {
                 new StockListResponse(2L, "P-2", "상품2", "식자재", 3, 10));
         Page<StockListResponse> lowStockPage = new PageImpl<>(preview, PageRequest.of(0, 5), 7);
 
+        // 입고 대기 발주는 6건 — 위젯은 전체 건수(6)와 상위 5개 미리보기로 나눠 담아야 한다.
+        List<PurchaseOrderListResponse> receivable = IntStream.rangeClosed(1, 6)
+                .mapToObj(i -> new PurchaseOrderListResponse(
+                        (long) i, "PO-" + i, "공급처", "요청자",
+                        OrderStatus.APPROVED, BigDecimal.ZERO, LocalDateTime.now()))
+                .toList();
+
         given(inboundService.countToday()).willReturn(4L);
         given(outboundService.countToday()).willReturn(2L);
         given(purchaseOrderService.countPending()).willReturn(3L);
         given(stockService.getLowStockPreview(5)).willReturn(lowStockPage);
+        given(purchaseOrderService.getReceivableOrders()).willReturn(receivable);
 
         // when
         DashboardResponse result = dashboardService.getDashboard();
@@ -61,6 +74,10 @@ class DashboardServiceTest {
         // 경고 건수는 미리보기 개수가 아니라 전체 건수(totalElements)여야 한다.
         assertThat(result.getLowStockCount()).isEqualTo(7L);
         assertThat(result.getLowStockPreview()).hasSize(2);
+
+        // 입고 대기: 건수는 전체(6), 미리보기는 상위 5개로 잘린다.
+        assertThat(result.getReceivableOrderCount()).isEqualTo(6L);
+        assertThat(result.getReceivableOrderPreview()).hasSize(5);
 
         // 미리보기 상위 건수(5)를 그대로 위임하는지 고정한다.
         then(stockService).should().getLowStockPreview(5);
