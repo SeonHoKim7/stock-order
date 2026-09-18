@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>재고 수동 조정 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+
+<div th:replace="~{fragments/nav :: bar}"></div>
 
 <h2>재고 수동 조정</h2>
 
@@ -16,8 +19,10 @@
 
 <!-- 입력은 실사로 직접 센 '목표 수량'(절대값). 증감 계산은 서버가 한다. -->
 <form method="post" th:action="@{/stocks/{id}/adjust(id=${stock.productId})}" th:object="${form}">
-    <!-- 폼을 띄운 시점의 현재고를 seenQuantity로 함께 제출 → 서버가 낙관적 검증에 사용 -->
-    <input type="hidden" th:field="*{seenQuantity}" th:value="${stock.currentQuantity}">
+    <!-- 폼을 띄운 시점의 현재고를 seenQuantity로 함께 제출 → 서버가 낙관적 검증에 사용.
+         th:field(폼 바인딩)를 쓰면 빈 DTO값(null)으로 value=""가 렌더되어 제출 시 @NotNull에 걸린다.
+         이 값은 폼 객체가 아니라 서버가 조회한 현재고이므로 name + th:value로 직접 싣는다. -->
+    <input type="hidden" name="seenQuantity" th:value="${stock.currentQuantity}">
 
     <div>
         <label>실사 수량(목표): <input type="number" th:field="*{targetQuantity}" min="0" required></label>
