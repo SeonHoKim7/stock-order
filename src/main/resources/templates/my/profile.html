@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>내 정보 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>내 정보</h2>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <table border="1">
     <tr><th>아이디</th><td th:text="${member.loginId}"></td></tr>
@@ -35,7 +38,6 @@
     <button type="submit">변경</button>
 </form>
 
-<a href="/dashboard">대시보드</a>
 
 </body>
 </html>

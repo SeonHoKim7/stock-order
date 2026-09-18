@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>입고 관리 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>입고 관리</h2>
 
-<a href="/dashboard">대시보드</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <!-- 검색 폼 -->
 <form method="get" th:action="@{/inbounds}">
@@ -30,7 +32,7 @@
 </form>
 
 <sec:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
-    <a href="/inbounds/new">입고 등록</a>
+    <a href="/inbounds/new" class="btn-add">입고 등록</a>
 </sec:authorize>
 
 <!-- 입고 목록 -->

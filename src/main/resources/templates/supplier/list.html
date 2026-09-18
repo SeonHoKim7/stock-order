@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>거래처 관리 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>거래처 관리</h2>
 
-<a href="/dashboard">대시보드</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <!-- 검색 폼 -->
 <form method="get" th:action="@{/suppliers}">
@@ -28,7 +30,7 @@
 </form>
 
 <sec:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
-    <a href="/suppliers/new">거래처 등록</a>
+    <a href="/suppliers/new" class="btn-add">거래처 등록</a>
 </sec:authorize>
 
 <!-- 거래처 목록 -->

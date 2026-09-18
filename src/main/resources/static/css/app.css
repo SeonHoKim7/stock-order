@@ -1,0 +1,178 @@
+/* =========================================================================
+   StockAndOrder 공통 스타일
+   - 목표: 화려함이 아니라 "마무리된 관리자 툴" 인상(신뢰 하한선).
+   - 전역 태그 선택자 위주로 작성해, 개별 템플릿을 건드리지 않아도 전 페이지에 적용된다.
+   - 색/간격은 CSS 변수로 토큰화.
+   ========================================================================= */
+:root {
+    /* 라이트 스킴 전용 선언: 브라우저 강제 다크 모드(Auto Dark)가 지정 배경/색을 반전시키지 않도록 고정 */
+    color-scheme: only light;
+    --bg:        #f4f5f7;
+    --surface:   #ffffff;
+    --border:    #e3e6ea;
+    --border-strong: #cfd4da;
+    --text:      #1f2430;
+    --text-weak: #6b7280;
+    --accent:    #2f57d6;
+    --accent-weak: #eef2ff;
+    --danger:    #c23b3b;
+    --danger-weak: #fdecec;
+    --ok:        #1f8a4c;
+    --warn:      #b26a00;
+    --radius:    8px;
+    --shadow:    0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px 56px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, "Malgun Gothic", "맑은 고딕", sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+}
+
+/* ---- 타이포 ---- */
+h2 { font-size: 22px; font-weight: 700; margin: 28px 0 16px; letter-spacing: -.01em; }
+h3 { font-size: 16px; font-weight: 700; margin: 24px 0 12px; }
+p  { margin: 8px 0; }
+a  { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+small, .muted { color: var(--text-weak); }
+
+/* ---- 상단 네비게이션 ---- */
+.nav {
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    padding: 0; margin: 0 -24px 24px;
+    padding: 0 24px;
+    height: 54px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+}
+.nav__brand {
+    font-weight: 800; font-size: 16px; color: var(--text);
+    margin-right: 12px; letter-spacing: -.02em;
+}
+.nav__brand:hover { text-decoration: none; }
+.nav a:not(.nav__brand) {
+    padding: 7px 11px; border-radius: 6px; color: var(--text-weak); font-weight: 500;
+}
+.nav a:not(.nav__brand):hover { background: var(--accent-weak); color: var(--accent); text-decoration: none; }
+.nav__spacer { margin-left: auto; }
+.nav__user { color: var(--text-weak); padding: 7px 8px; }
+.nav__user strong { color: var(--text); font-weight: 600; }
+
+/* ---- 테이블 ---- */
+table {
+    width: 100%; border-collapse: collapse; margin: 14px 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; font-size: 13.5px;
+}
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+thead th {
+    background: #f8f9fb; color: var(--text-weak); font-weight: 600; font-size: 12.5px;
+    text-transform: none; white-space: nowrap; border-bottom: 1px solid var(--border-strong);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #fafbfc; }
+/* border="1" 같은 기존 속성 테두리 무력화 */
+table[border] { border: 1px solid var(--border) !important; }
+table[border] th, table[border] td { border: none; border-bottom: 1px solid var(--border); }
+
+/* ---- 폼 ---- */
+label { display: inline-block; color: var(--text-weak); font-weight: 500; margin-bottom: 4px; }
+input[type=text], input[type=number], input[type=password], input[type=email],
+input[type=date], input[type=search], select, textarea {
+    font: inherit; color: var(--text);
+    padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 6px;
+    background: var(--surface); min-height: 36px; max-width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,87,214,.12);
+}
+textarea { min-height: 84px; width: 100%; }
+select { cursor: pointer; }
+form { margin: 12px 0; }
+
+/* 검색/필터 줄: 인접한 input/select/button 을 한 줄로 정렬 */
+form > select, form > input, form > button { margin-right: 6px; margin-bottom: 6px; }
+
+/* ---- 버튼 ---- */
+button, input[type=submit], .btn {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 8px 14px; min-height: 36px;
+    background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 6px;
+    transition: background .12s, border-color .12s;
+}
+button:hover, input[type=submit]:hover, .btn:hover { background: #2547b8; border-color: #2547b8; }
+/* 보조 버튼(폼 밖 링크형 버튼 등)은 필요 시 .btn--ghost 로 */
+.btn--ghost { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn--ghost:hover { background: #f3f4f6; }
+.btn--danger { background: var(--danger); border-color: var(--danger); }
+.btn--danger:hover { background: #a83232; border-color: #a83232; }
+
+/* ---- 목록 화면의 주요 '등록' 링크(발주/입고/출고 등록)를 눈에 띄는 CTA 버튼으로 ---- */
+a.btn-add {
+    display: inline-block;
+    margin: 8px 0 14px;
+    padding: 8px 15px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+}
+a.btn-add:hover { background: #2547b8; text-decoration: none; }
+a.btn-add::before { content: "+ "; font-weight: 700; }
+
+/* ---- 상태 뱃지 ---- */
+.badge {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; line-height: 1.7;
+    background: var(--accent-weak); color: var(--accent);
+}
+.badge--ok     { background: #e7f6ee; color: var(--ok); }
+.badge--warn   { background: #fdf1df; color: var(--warn); }
+.badge--danger { background: var(--danger-weak); color: var(--danger); }
+.badge--muted  { background: #eef0f3; color: var(--text-weak); }
+
+/* ---- 카드/위젯 (대시보드 등 인라인 박스 대체용) ---- */
+.card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; background: var(--surface); box-shadow: var(--shadow);
+}
+
+/* ---- 메시지 ---- */
+.msg { padding: 10px 14px; border-radius: 6px; margin: 12px 0; font-weight: 500; }
+.msg--ok    { background: var(--accent-weak); color: var(--accent); }
+.msg--error { background: var(--danger-weak); color: var(--danger); }
+
+/* ---- 로그인 화면 전용(네비 없음) : 중앙 정렬 카드 ---- */
+body.login-page { max-width: 380px; padding-top: 12vh; }
+body.login-page h2 { text-align: center; margin-bottom: 22px; }
+
+/* 라벨을 입력칸 위로 쌓고 입력칸을 균일 폭으로 → 라벨 길이와 무관하게 정렬이 맞는다 */
+.login-page form {
+    display: flex; flex-direction: column; gap: 16px;
+    padding: 26px 24px; margin: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.login-page form > div { display: flex; flex-direction: column; gap: 6px; }
+.login-page label { margin: 0; }
+.login-page input { width: 100%; }
+.login-page button { width: 100%; margin-top: 4px; }
+
+/* 로그인 상단 안내(오류/로그아웃) 메시지: 카드 위에 폭 맞춰 표시 */
+.login-page .login-msg { text-align: center; margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; }
+.login-page .login-msg--error { background: var(--danger-weak); color: var(--danger); }
+.login-page .login-msg--info  { background: var(--accent-weak); color: var(--accent); }

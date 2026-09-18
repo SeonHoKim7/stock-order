@@ -4,16 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <title>카테고리 관리 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>카테고리 관리</h2>
 
-<a href="/dashboard">대시보드</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
-<table border="1">
+<!-- 카테고리 등록: 페이지 진입 시 바로 보이도록 목록 위 상단 카드에 한 줄 폼으로 배치 -->
+<div sec:authorize="hasAnyRole('MANAGER', 'ADMIN')" class="card" style="margin-bottom:20px;">
+    <form th:action="@{/categories}" th:object="${createForm}" method="post"
+          style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin:0;">
+        <div>
+            <label>이름</label><br>
+            <input type="text" th:field="*{name}" placeholder="카테고리 이름" required>
+        </div>
+        <div style="flex:1; min-width:220px;">
+            <label>설명</label><br>
+            <input type="text" th:field="*{description}" placeholder="설명 (선택)" style="width:100%;">
+        </div>
+        <button type="submit">+ 등록</button>
+        <div style="flex-basis:100%;">
+            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger);"></span>
+            <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:var(--danger);"></span>
+        </div>
+    </form>
+</div>
+
+<table>
     <thead>
         <tr>
             <th>ID</th>
@@ -46,23 +68,6 @@
         </tr>
     </tbody>
 </table>
-
-<div sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
-    <h3>카테고리 등록</h3>
-    <form th:action="@{/categories}" th:object="${createForm}" method="post">
-        <div>
-            <label>이름</label>
-            <input type="text" th:field="*{name}">
-            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:red;"></span>
-        </div>
-        <div>
-            <label>설명</label>
-            <input type="text" th:field="*{description}">
-            <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:red;"></span>
-        </div>
-        <button type="submit">등록</button>
-    </form>
-</div>
 
 </body>
 </html>

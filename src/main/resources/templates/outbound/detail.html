@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${outbound.outboundNumber} + ' - StockAndOrder'">출고 상세</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+
+<div th:replace="~{fragments/nav :: bar}"></div>
 
 <h2>출고 상세</h2>
 
 <a href="/outbounds">목록으로</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <table border="1">
     <tr><th>출고번호</th><td th:text="${outbound.outboundNumber}"></td></tr>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!--
+  전역 네비게이션 바.
+  - 모든 기능 페이지 <body> 최상단에 th:replace 로 삽입한다(login/error 제외).
+  - 표시 사용자 정보는 Security 컨텍스트(sec:authentication)에서 직접 읽어 어느 페이지에서든 동작한다.
+  - 메뉴 노출 범위는 SecurityConfig 의 GET 접근 권한과 일치: 조회는 전원, /admin/** 만 ADMIN.
+  - 스타일은 static/css/app.css 의 .nav 계열 클래스에 위임한다.
+-->
+<nav th:fragment="bar" class="nav">
+    <a th:href="@{/dashboard}" class="nav__brand">StockAndOrder</a>
+
+    <a th:href="@{/orders}">발주</a>
+    <a th:href="@{/inbounds}">입고</a>
+    <a th:href="@{/outbounds}">출고</a>
+    <a th:href="@{/stocks}">재고</a>
+    <a th:href="@{/products}">상품</a>
+    <a th:href="@{/suppliers}">거래처</a>
+    <a th:href="@{/categories}">카테고리</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/members}">회원 관리</a>
+
+    <span class="nav__spacer"></span>
+    <a th:href="@{/my/profile}" class="nav__user"><strong sec:authentication="name">아이디</strong>님</a>
+    <form th:action="@{/logout}" method="post" style="margin:0;">
+        <button type="submit" class="btn--ghost">로그아웃</button>
+    </form>
+</nav>
+
+</body>
+</html>

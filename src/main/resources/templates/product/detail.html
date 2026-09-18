@@ -4,14 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${product.name} + ' - StockAndOrder'">상품 상세</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+
+<div th:replace="~{fragments/nav :: bar}"></div>
 
 <h2>상품 상세</h2>
 
 <a href="/products">목록으로</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <div th:if="${!product.active}" style="color:red;">[비활성화된 상품]</div>
 

@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>재고 현황 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>재고 현황</h2>
 
-<a href="/dashboard">대시보드</a>
 
-<p th:if="${message}" th:text="${message}" style="color:green;"></p>
+<p th:if="${message}" th:text="${message}" class="msg msg--ok"></p>
 
 <!-- 검색/필터 폼 -->
 <form method="get" th:action="@{/stocks}">

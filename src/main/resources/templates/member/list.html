@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>회원 목록 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>회원 목록</h2>
 
-<a href="/admin/members/new">신규 회원 생성</a>
-<a href="/dashboard">대시보드</a>
+<a href="/admin/members/new" class="btn-add">신규 회원 생성</a>
 
 <table border="1">
     <thead>

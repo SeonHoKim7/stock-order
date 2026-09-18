@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>회원 상세 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>회원 상세</h2>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <table border="1">
     <tr><th>아이디</th><td th:text="${member.loginId}"></td></tr>

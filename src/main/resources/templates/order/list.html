@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>발주 관리 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 
+<div th:replace="~{fragments/nav :: bar}"></div>
+
 <h2>발주 관리</h2>
 
-<a href="/dashboard">대시보드</a>
 
-<div th:if="${message}" th:text="${message}" style="color:green;"></div>
+<div th:if="${message}" th:text="${message}" class="msg msg--ok"></div>
 
 <!-- 검색 폼 -->
 <form method="get" th:action="@{/orders}">
@@ -36,7 +38,7 @@
     <a th:href="@{/orders}">초기화</a>
 </form>
 
-<a href="/orders/new">발주 등록</a>
+<a href="/orders/new" class="btn-add">발주 등록</a>
 
 <!-- 발주 목록 -->
 <table border="1">

@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
-<body>
+<body class="login-page">
 
 <h2>StockAndOrder 로그인</h2>
 
-<div th:if="${param.error}">
-    <p style="color: red;">아이디 또는 비밀번호가 올바르지 않거나 비활성화된 계정입니다.</p>
+<div th:if="${param.error}" class="login-msg login-msg--error">
+    아이디 또는 비밀번호가 올바르지 않거나 비활성화된 계정입니다.
 </div>
 
-<div th:if="${param.logout}">
-    <p style="color: blue;">로그아웃 되었습니다.</p>
+<div th:if="${param.logout}" class="login-msg login-msg--info">
+    로그아웃 되었습니다.
 </div>
 
 <form th:action="@{/login}" method="post">
