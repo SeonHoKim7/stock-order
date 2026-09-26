@@ -131,8 +131,8 @@ class InboundProcessorTest {
 
             assertThat(inboundId).isEqualTo(GENERATED_INBOUND_ID);
             // 재고 반영은 StockService에 위임(referenceId = 방금 채번된 inbound_id)
-            then(stockService).should().increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID);
-            then(stockService).should().increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID);
+            then(stockService).should().increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID, PROCESSOR_ID);
+            then(stockService).should().increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID, PROCESSOR_ID);
             // 발주 항목 누적 입고량
             assertThat(orderItem1.getReceivedQuantity()).isEqualTo(10);
             assertThat(orderItem2.getReceivedQuantity()).isEqualTo(20);
@@ -153,7 +153,7 @@ class InboundProcessorTest {
 
             inboundProcessor.createOnce(request, PROCESSOR_ID);
 
-            then(stockService).should().increase(PRODUCT_1_ID, 4, GENERATED_INBOUND_ID);
+            then(stockService).should().increase(PRODUCT_1_ID, 4, GENERATED_INBOUND_ID, PROCESSOR_ID);
             assertThat(orderItem1.getReceivedQuantity()).isEqualTo(4);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
         }
@@ -174,8 +174,8 @@ class InboundProcessorTest {
             inboundProcessor.createOnce(request, PROCESSOR_ID);
 
             InOrder ordered = inOrder(stockService);
-            ordered.verify(stockService).increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID);
-            ordered.verify(stockService).increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID);
+            ordered.verify(stockService).increase(PRODUCT_1_ID, 10, GENERATED_INBOUND_ID, PROCESSOR_ID);
+            ordered.verify(stockService).increase(PRODUCT_2_ID, 20, GENERATED_INBOUND_ID, PROCESSOR_ID);
         }
 
         @Test
@@ -301,7 +301,7 @@ class InboundProcessorTest {
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.INBOUND_QUANTITY_EXCEEDED));
-            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any());
+            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any(), any());
         }
 
         @Test
@@ -317,7 +317,7 @@ class InboundProcessorTest {
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.INBOUND_ITEM_ALREADY_COMPLETED));
-            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any());
+            then(stockService).should(never()).increase(any(), org.mockito.ArgumentMatchers.anyInt(), any(), any());
         }
     }
 

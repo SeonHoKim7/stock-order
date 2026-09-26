@@ -81,7 +81,8 @@ public class InboundProcessor {
             orderItem.receive(quantity);
 
             // G-1/I-1: 재고 증가 + StockLog 기록(referenceId=inbound_id)을 StockService가 원자적으로 처리
-            stockService.increase(orderItem.getProduct().getProductId(), quantity, inbound.getInboundId());
+            stockService.increase(orderItem.getProduct().getProductId(), quantity,
+                    inbound.getInboundId(), processorId);
         }
 
         // 5. C-2: 입고 누적 결과로 발주 상태 재계산(전량 입고면 COMPLETED, 아니면 IN_PROGRESS)

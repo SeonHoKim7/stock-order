@@ -4,11 +4,13 @@ import com.stockandorder.domain.category.service.CategoryService;
 import com.stockandorder.domain.stock.dto.StockAdjustRequest;
 import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.service.StockService;
+import com.stockandorder.global.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -49,13 +51,15 @@ public class StockController {
     public String adjust(@PathVariable Long productId,
                          @Valid @ModelAttribute("form") StockAdjustRequest form,
                          BindingResult bindingResult,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("stock", stockService.getAdjustForm(productId));
             return "stock/adjust";
         }
-        stockService.adjust(productId, form.getTargetQuantity(), form.getSeenQuantity(), form.getReason());
+        stockService.adjust(productId, form.getTargetQuantity(), form.getSeenQuantity(),
+                form.getReason(), userDetails.getMemberId());
         redirectAttributes.addFlashAttribute("message", "재고가 조정되었습니다.");
         return "redirect:/stocks";
     }

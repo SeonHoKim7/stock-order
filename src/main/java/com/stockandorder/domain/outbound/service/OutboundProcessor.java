@@ -80,7 +80,8 @@ public class OutboundProcessor {
                 .sorted(Comparator.comparing(it -> it.getProduct().getProductId()))
                 .toList();
         for (OutboundItem item : lockOrder) {
-            stockService.decrease(item.getProduct().getProductId(), item.getQuantity(), outbound.getOutboundId());
+            stockService.decrease(item.getProduct().getProductId(), item.getQuantity(),
+                    outbound.getOutboundId(), processorId);
         }
 
         return outbound.getOutboundId();

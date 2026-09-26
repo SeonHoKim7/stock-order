@@ -1,6 +1,8 @@
 package com.stockandorder.domain.stock.entity;
 
 import com.stockandorder.domain.category.entity.Category;
+import com.stockandorder.domain.member.entity.Member;
+import com.stockandorder.domain.member.enums.Role;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.enums.StockChangeType;
 import com.stockandorder.global.exception.BusinessException;
@@ -18,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class StockLogTest {
 
     private Product product;
+    private Member actor;
 
     @BeforeEach
     void setUp() {
         Category category = Category.create("식자재", null);
         product = Product.create("PRD-001", "밀가루", category, "KG",
                 BigDecimal.valueOf(10000), 10, null);
+        actor = Member.create("manager1", "password", "매니저1", "manager1@test.com", Role.MANAGER);
     }
 
     @Nested
@@ -34,7 +38,7 @@ class StockLogTest {
         @DisplayName("INBOUND: 양수 changeQuantity로 정상 생성된다")
         void of_inbound_createsLog() {
             StockLog log = StockLog.of(product, StockChangeType.INBOUND,
-                    10, 0, 10, 100L, null);
+                    10, 0, 10, 100L, null, actor);
 
             assertThat(log.getChangeType()).isEqualTo(StockChangeType.INBOUND);
             assertThat(log.getChangeQuantity()).isEqualTo(10);
@@ -42,13 +46,23 @@ class StockLogTest {
             assertThat(log.getAfterQuantity()).isEqualTo(10);
             assertThat(log.getReferenceId()).isEqualTo(100L);
             assertThat(log.getReason()).isNull();
+            assertThat(log.getActor()).isSameAs(actor);
+        }
+
+        @Test
+        @DisplayName("actor는 null을 허용한다 — 컬럼 도입 이전에 쌓인 로그를 표현할 수 있어야 한다")
+        void of_nullActor_allowed() {
+            StockLog log = StockLog.of(product, StockChangeType.INBOUND,
+                    10, 0, 10, 100L, null, null);
+
+            assertThat(log.getActor()).isNull();
         }
 
         @Test
         @DisplayName("OUTBOUND: 음수 changeQuantity로 정상 생성된다")
         void of_outbound_createsLog() {
             StockLog log = StockLog.of(product, StockChangeType.OUTBOUND,
-                    -5, 10, 5, 200L, null);
+                    -5, 10, 5, 200L, null, actor);
 
             assertThat(log.getChangeType()).isEqualTo(StockChangeType.OUTBOUND);
             assertThat(log.getChangeQuantity()).isEqualTo(-5);
@@ -59,9 +73,9 @@ class StockLogTest {
         @DisplayName("ADJUST: 양수/음수 changeQuantity 모두 허용되며 referenceId는 null")
         void of_adjust_createsLog() {
             StockLog increase = StockLog.of(product, StockChangeType.ADJUST,
-                    3, 10, 13, null, "재고 실사 가산");
+                    3, 10, 13, null, "재고 실사 가산", actor);
             StockLog decrease = StockLog.of(product, StockChangeType.ADJUST,
-                    -2, 13, 11, null, "파손 처리");
+                    -2, 13, 11, null, "파손 처리", actor);
 
             assertThat(increase.getReferenceId()).isNull();
             assertThat(increase.getReason()).isEqualTo("재고 실사 가산");
@@ -78,10 +92,10 @@ class StockLogTest {
         @DisplayName("INBOUND: 0 또는 음수 changeQuantity는 IllegalArgumentException")
         void of_inboundNonPositive_throwsException() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.INBOUND,
-                    0, 10, 10, 1L, null))
+                    0, 10, 10, 1L, null, actor))
                     .isInstanceOf(IllegalArgumentException.class);
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.INBOUND,
-                    -1, 10, 9, 1L, null))
+                    -1, 10, 9, 1L, null, actor))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -89,10 +103,10 @@ class StockLogTest {
         @DisplayName("OUTBOUND: 0 또는 양수 changeQuantity는 IllegalArgumentException")
         void of_outboundNonNegative_throwsException() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.OUTBOUND,
-                    0, 10, 10, 1L, null))
+                    0, 10, 10, 1L, null, actor))
                     .isInstanceOf(IllegalArgumentException.class);
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.OUTBOUND,
-                    1, 10, 11, 1L, null))
+                    1, 10, 11, 1L, null, actor))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -100,7 +114,7 @@ class StockLogTest {
         @DisplayName("ADJUST: 0 changeQuantity는 IllegalArgumentException")
         void of_adjustZero_throwsException() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
-                    0, 10, 10, null, "사유"))
+                    0, 10, 10, null, "사유", actor))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -113,7 +127,7 @@ class StockLogTest {
         @DisplayName("ADJUST: reason이 null이면 STOCK_ADJUST_REASON_REQUIRED 예외")
         void of_adjustNullReason_throws() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
-                    3, 10, 13, null, null))
+                    3, 10, 13, null, null, actor))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.STOCK_ADJUST_REASON_REQUIRED));
@@ -123,7 +137,7 @@ class StockLogTest {
         @DisplayName("ADJUST: reason이 공백이면 STOCK_ADJUST_REASON_REQUIRED 예외")
         void of_adjustBlankReason_throws() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.ADJUST,
-                    3, 10, 13, null, "   "))
+                    3, 10, 13, null, "   ", actor))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.STOCK_ADJUST_REASON_REQUIRED));
@@ -132,8 +146,8 @@ class StockLogTest {
         @Test
         @DisplayName("INBOUND/OUTBOUND: reason이 null이어도 정상(자동 변동은 사유 불필요)")
         void of_autoChangeNullReason_ok() {
-            StockLog inbound = StockLog.of(product, StockChangeType.INBOUND, 5, 0, 5, 1L, null);
-            StockLog outbound = StockLog.of(product, StockChangeType.OUTBOUND, -2, 5, 3, 2L, null);
+            StockLog inbound = StockLog.of(product, StockChangeType.INBOUND, 5, 0, 5, 1L, null, actor);
+            StockLog outbound = StockLog.of(product, StockChangeType.OUTBOUND, -2, 5, 3, 2L, null, actor);
 
             assertThat(inbound.getReason()).isNull();
             assertThat(outbound.getReason()).isNull();
@@ -148,7 +162,7 @@ class StockLogTest {
         @DisplayName("after_quantity가 before_quantity + change_quantity와 일치하지 않으면 예외")
         void of_inconsistentInvariant_throwsException() {
             assertThatThrownBy(() -> StockLog.of(product, StockChangeType.INBOUND,
-                    10, 0, 99, 1L, null))
+                    10, 0, 99, 1L, null, actor))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }

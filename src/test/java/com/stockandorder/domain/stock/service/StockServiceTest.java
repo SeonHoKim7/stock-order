@@ -1,6 +1,9 @@
 package com.stockandorder.domain.stock.service;
 
 import com.stockandorder.domain.category.entity.Category;
+import com.stockandorder.domain.member.entity.Member;
+import com.stockandorder.domain.member.enums.Role;
+import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.entity.Stock;
 import com.stockandorder.domain.stock.entity.StockLog;
@@ -26,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,12 +42,16 @@ class StockServiceTest {
     private StockRepository stockRepository;
     @Mock
     private StockLogRepository stockLogRepository;
+    @Mock
+    private MemberRepository memberRepository;
 
     private static final long PRODUCT_ID = 10L;
     private static final long REFERENCE_ID = 1000L;
+    private static final long ACTOR_ID = 7L;
 
     private Product product;
     private Stock stock;
+    private Member actor;
 
     @BeforeEach
     void setUp() {
@@ -52,6 +60,11 @@ class StockServiceTest {
                 BigDecimal.valueOf(10000), 10, null);
         ReflectionTestUtils.setField(product, "productId", PRODUCT_ID);
         stock = Stock.create(product);
+
+        actor = Member.create("manager1", "password", "매니저1", "manager1@test.com", Role.MANAGER);
+        ReflectionTestUtils.setField(actor, "memberId", ACTOR_ID);
+        // 검증에서 먼저 걸러지는 테스트는 처리자 조회까지 가지 않으므로 lenient로 둔다.
+        lenient().when(memberRepository.findById(ACTOR_ID)).thenReturn(Optional.of(actor));
     }
 
     @Test
@@ -59,7 +72,7 @@ class StockServiceTest {
     void increase_increasesStockQuantity() {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        stockService.increase(PRODUCT_ID, 6, REFERENCE_ID);
+        stockService.increase(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID);
 
         assertThat(stock.getQuantity()).isEqualTo(6);
     }
@@ -70,7 +83,7 @@ class StockServiceTest {
         stock.increase(4); // 기존 재고 4
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        stockService.increase(PRODUCT_ID, 6, REFERENCE_ID);
+        stockService.increase(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID);
 
         ArgumentCaptor<StockLog> captor = ArgumentCaptor.forClass(StockLog.class);
         then(stockLogRepository).should().save(captor.capture());
@@ -89,7 +102,7 @@ class StockServiceTest {
     void increase_stockNotFound_throws() {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> stockService.increase(PRODUCT_ID, 6, REFERENCE_ID))
+        assertThatThrownBy(() -> stockService.increase(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_NOT_FOUND));
@@ -102,7 +115,7 @@ class StockServiceTest {
         stock.increase(10); // 기존 재고 10
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID);
+        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID);
 
         assertThat(stock.getQuantity()).isEqualTo(4);
     }
@@ -113,7 +126,7 @@ class StockServiceTest {
         stock.increase(10); // 기존 재고 10
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID);
+        stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID);
 
         ArgumentCaptor<StockLog> captor = ArgumentCaptor.forClass(StockLog.class);
         then(stockLogRepository).should().save(captor.capture());
@@ -133,7 +146,7 @@ class StockServiceTest {
         stock.increase(5); // 재고 5뿐인데 6 출고 시도
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID))
+        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_INSUFFICIENT));
@@ -145,7 +158,7 @@ class StockServiceTest {
     void decrease_stockNotFound_throws() {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID))
+        assertThatThrownBy(() -> stockService.decrease(PRODUCT_ID, 6, REFERENCE_ID, ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_NOT_FOUND));
@@ -159,7 +172,7 @@ class StockServiceTest {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
         // 본 값 50, 실사 결과 47 → delta -3
-        stockService.adjust(PRODUCT_ID, 47, 50, "재고 실사 보정");
+        stockService.adjust(PRODUCT_ID, 47, 50, "재고 실사 보정", ACTOR_ID);
 
         assertThat(stock.getQuantity()).isEqualTo(47);
 
@@ -181,7 +194,7 @@ class StockServiceTest {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
         // 사용자는 50을 보고 입력 → think-time 동안 변동된 것으로 간주
-        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 47, 50, "사유"))
+        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 47, 50, "사유", ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_CONCURRENT_MODIFICATION));
@@ -195,7 +208,7 @@ class StockServiceTest {
         stock.increase(50);
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.of(stock));
 
-        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 50, 50, "사유"))
+        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 50, 50, "사유", ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_ADJUST_NO_CHANGE));
@@ -207,7 +220,7 @@ class StockServiceTest {
     void adjust_stockNotFound_throws() {
         given(stockRepository.findByProductIdForUpdate(PRODUCT_ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 47, 50, "사유"))
+        assertThatThrownBy(() -> stockService.adjust(PRODUCT_ID, 47, 50, "사유", ACTOR_ID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.STOCK_NOT_FOUND));

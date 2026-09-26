@@ -1,6 +1,8 @@
 package com.stockandorder.domain.stock.repository;
 
 import com.stockandorder.domain.category.entity.Category;
+import com.stockandorder.domain.member.entity.Member;
+import com.stockandorder.domain.member.enums.Role;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.entity.StockLog;
 import com.stockandorder.domain.stock.enums.StockChangeType;
@@ -39,6 +41,9 @@ class StockLogRepositoryTest {
         Category category = Category.create("식자재", null);
         em.persist(category);
 
+        Member actor = Member.create("manager1", "password", "매니저1", "manager1@test.com", Role.MANAGER);
+        em.persist(actor);
+
         productA = Product.create("PRD-A", "밀가루", category, "KG",
                 BigDecimal.valueOf(10000), 10, null);
         productB = Product.create("PRD-B", "설탕", category, "KG",
@@ -47,12 +52,13 @@ class StockLogRepositoryTest {
         em.persist(productB);
 
         // productA: INBOUND 10 → OUTBOUND -3 → ADJUST +2 (이력 3건)
-        em.persist(StockLog.of(productA, StockChangeType.INBOUND, 10, 0, 10, 1L, null));
-        em.persist(StockLog.of(productA, StockChangeType.OUTBOUND, -3, 10, 7, 2L, null));
-        em.persist(StockLog.of(productA, StockChangeType.ADJUST, 2, 7, 9, null, "실사 가산"));
+        em.persist(StockLog.of(productA, StockChangeType.INBOUND, 10, 0, 10, 1L, null, actor));
+        em.persist(StockLog.of(productA, StockChangeType.OUTBOUND, -3, 10, 7, 2L, null, actor));
+        em.persist(StockLog.of(productA, StockChangeType.ADJUST, 2, 7, 9, null, "실사 가산", actor));
 
-        // productB: INBOUND 1건
-        em.persist(StockLog.of(productB, StockChangeType.INBOUND, 5, 0, 5, 3L, null));
+        // productB: INBOUND 1건 + 처리자가 기록되지 않은 과거 로그 1건(actor 컬럼 도입 이전을 재현)
+        em.persist(StockLog.of(productB, StockChangeType.INBOUND, 5, 0, 5, 3L, null, actor));
+        em.persist(StockLog.of(productB, StockChangeType.ADJUST, -1, 5, 4, null, "처리자 미상", null));
 
         em.flush();
         em.clear();

@@ -1,5 +1,7 @@
 package com.stockandorder.domain.stock.service;
 
+import com.stockandorder.domain.member.entity.Member;
+import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.stock.dto.StockAdjustFormResponse;
 import com.stockandorder.domain.stock.dto.StockListResponse;
 import com.stockandorder.domain.stock.dto.StockSearchCondition;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -30,8 +33,13 @@ import java.util.List;
  * - 출고(decrease)·재고조정(adjust)도 같은 "변경+로그+스냅샷" 패턴이므로 여기서 재사용한다(DRY).
  *
  * 트랜잭션/락 주의:
- * - 재고 변경과 로그 기록은 같은 트랜잭션이어야 하므로, 이 메서드는 트랜잭션을 가진 오케스트레이터
- *   (예: InboundProcessor.createOnce) 안에서 호출되어야 한다.
+ * - increase/decrease는 Propagation.MANDATORY다. 트랜잭션 없이 호출되면 리포지토리 메서드가 각자
+ *   자기 트랜잭션으로 커밋해버려서, (1) SELECT ... FOR UPDATE 락이 재고를 바꾸기도 전에 풀리고,
+ *   (2) open-in-view=false라 영속성 컨텍스트가 닫혀 Stock이 준영속이 되므로 UPDATE가 나가지 않고,
+ *   (3) 그런데 StockLog는 저장되어 "재고는 그대로인데 변동 로그만 남는" 상태가 된다.
+ *   REQUIRED로 두면 단독 호출이 조용히 성공해버려 입고 1건의 원자성이 깨진 것을 아무도 모르게 되므로,
+ *   호출 자체를 즉시 실패시켜 오케스트레이터 안에서만 쓰이도록 강제한다.
+ * - adjust는 컨트롤러가 직접 호출하는 진입점이므로 스스로 트랜잭션을 여는 REQUIRED를 유지한다.
  * - 비관적 락을 이 메서드 안에서 획득하므로, 한 트랜잭션에서 여러 상품을 처리할 때 데드락을 막으려면
  *   호출 측이 productId 오름차순으로 호출해 락 획득 순서를 고정해야 한다.
  */
@@ -41,6 +49,7 @@ public class StockService {
 
     private final StockRepository stockRepository;
     private final StockLogRepository stockLogRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 재고 현황 목록 조회(읽기 전용). 변경 경로와 달리 락을 잡지 않는다(찰나의 stale 허용).
@@ -91,9 +100,10 @@ public class StockService {
      * @param targetQuantity 실사로 센 목표 수량(절대값)
      * @param seenQuantity   사용자가 폼에서 본 현재고(낙관적 검증 기준값)
      * @param reason         조정 사유(필수). ADJUST는 referenceId가 없어 유일한 추적 단서다.
+     * @param actorId        조정을 수행한 사람. 원본 문서가 없는 ADJUST는 로그에 남는 주체가 이것뿐이다.
      */
     @Transactional
-    public void adjust(Long productId, int targetQuantity, int seenQuantity, String reason) {
+    public void adjust(Long productId, int targetQuantity, int seenQuantity, String reason, Long actorId) {
         Stock stock = stockRepository.findByProductIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
 
@@ -113,7 +123,7 @@ public class StockService {
 
         // ADJUST는 referenceId 없이 reason으로만 추적된다. reason 누락은 StockLog.of가 막는다(불변식).
         StockLog log = StockLog.of(stock.getProduct(), StockChangeType.ADJUST,
-                delta, before, after, null, reason);
+                delta, before, after, null, reason, findMember(actorId));
         stockLogRepository.save(log);
     }
 
@@ -123,8 +133,10 @@ public class StockService {
      * @param productId   대상 상품
      * @param quantity    증가 수량(양수)
      * @param referenceId 변동 원본(입고 id). StockLog.referenceId에 기록되어 추적에 쓰인다.
+     * @param actorId     입고를 처리한 사람. 변동 이력에 주체로 남는다.
      */
-    public void increase(Long productId, int quantity, Long referenceId) {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void increase(Long productId, int quantity, Long referenceId, Long actorId) {
         Stock stock = stockRepository.findByProductIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
 
@@ -135,7 +147,7 @@ public class StockService {
         // I-2/I-3: 변동 결과를 before/after 스냅샷과 함께 append-only 로그로 남긴다.
         // 입고는 시스템 자동 변동이라 referenceId(입고 id)로 추적되므로 reason은 null(I-4).
         StockLog log = StockLog.of(stock.getProduct(), StockChangeType.INBOUND,
-                quantity, before, after, referenceId, null);
+                quantity, before, after, referenceId, null, findMember(actorId));
         stockLogRepository.save(log);
     }
 
@@ -146,8 +158,10 @@ public class StockService {
      * @param productId   대상 상품
      * @param quantity    감소 수량(양수). StockLog에는 음수(-quantity)로 기록된다.
      * @param referenceId 변동 원본(출고 id). StockLog.referenceId에 기록되어 추적에 쓰인다.
+     * @param actorId     출고를 처리한 사람. 변동 이력에 주체로 남는다.
      */
-    public void decrease(Long productId, int quantity, Long referenceId) {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void decrease(Long productId, int quantity, Long referenceId, Long actorId) {
         Stock stock = stockRepository.findByProductIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
 
@@ -157,7 +171,16 @@ public class StockService {
 
         // OUTBOUND 로그는 변동량을 음수로 기록한다(StockLog가 방향을 검증함).
         StockLog log = StockLog.of(stock.getProduct(), StockChangeType.OUTBOUND,
-                -quantity, before, after, referenceId, null);
+                -quantity, before, after, referenceId, null, findMember(actorId));
         stockLogRepository.save(log);
+    }
+
+    /**
+     * 변동 주체 조회. 입고·출고는 상품 수만큼 호출되지만, 같은 트랜잭션이라 두 번째부터는
+     * 영속성 컨텍스트 1차 캐시에서 반환되어 추가 쿼리가 나가지 않는다.
+     */
+    private Member findMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

@@ -1,5 +1,6 @@
 package com.stockandorder.domain.stock.entity;
 
+import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.product.entity.Product;
 import com.stockandorder.domain.stock.enums.StockChangeType;
 import com.stockandorder.global.common.BaseTimeEntity;
@@ -50,13 +51,22 @@ public class StockLog extends BaseTimeEntity {
     @Column(length = 500)
     private String reason;
 
+    // 이 변동을 일으킨 사람. 입고·출고는 referenceId로 원본 문서를 찾으면 처리자를 알 수 있지만,
+    // referenceId는 FK 없는 다형 참조라 조인이 불가능하고 ADJUST는 원본 문서 자체가 없다.
+    // stock_log는 원본이 사라져도 홀로 성립해야 하는 감사 로그이므로(D-2), 주체를 여기에 직접 남긴다.
+    // nullable: 이 컬럼이 생기기 전에 쌓인 기존 로그 행은 처리자를 알 수 없다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "actor_id")
+    private Member actor;
+
     public static StockLog of(Product product,
                               StockChangeType changeType,
                               int changeQuantity,
                               int beforeQuantity,
                               int afterQuantity,
                               Long referenceId,
-                              String reason) {
+                              String reason,
+                              Member actor) {
         validateDirection(changeType, changeQuantity);
         validateAdjustReason(changeType, reason);
         if (afterQuantity != beforeQuantity + changeQuantity) {
@@ -71,6 +81,7 @@ public class StockLog extends BaseTimeEntity {
         log.afterQuantity = afterQuantity;
         log.referenceId = referenceId;
         log.reason = reason;
+        log.actor = actor;
         return log;
     }
 
