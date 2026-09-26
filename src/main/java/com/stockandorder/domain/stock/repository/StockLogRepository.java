@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface StockLogRepository extends JpaRepository<StockLog, Long> {
+public interface StockLogRepository extends JpaRepository<StockLog, Long>, StockLogRepositoryCustom {
 
     // (product_id, created_at) 복합 인덱스를 활용한 상품별 최신순 이력 조회
     @Query("SELECT sl FROM StockLog sl WHERE sl.product.productId = :productId ORDER BY sl.createdAt DESC")

@@ -2,6 +2,7 @@ package com.stockandorder.domain.stock.controller;
 
 import com.stockandorder.domain.category.service.CategoryService;
 import com.stockandorder.domain.stock.dto.StockAdjustRequest;
+import com.stockandorder.domain.stock.dto.StockLogSearchCondition;
 import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.service.StockService;
 import com.stockandorder.global.auth.CustomUserDetails;
@@ -36,6 +37,18 @@ public class StockController {
         model.addAttribute("stocks", stockService.searchStocks(condition, pageable));
         model.addAttribute("categories", categoryService.getCategories());
         return "stock/list";
+    }
+
+    /**
+     * 재고 변동 이력. 조회는 전원 허용한다(재고 현황 목록과 같은 기준).
+     * productId가 오면 특정 상품의 이력으로, 없으면 전체 이력으로 동작한다.
+     */
+    @GetMapping("/logs")
+    public String logs(@ModelAttribute("condition") StockLogSearchCondition condition,
+                       @PageableDefault(size = 20) Pageable pageable,
+                       Model model) {
+        model.addAttribute("logs", stockService.searchStockLogs(condition, pageable));
+        return "stock/logs";
     }
 
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")

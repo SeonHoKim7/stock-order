@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>재고 변동 이력 - StockAndOrder</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/nav :: bar}"></div>
+
+<h2>재고 변동 이력</h2>
+
+<!-- 검색/필터 폼 -->
+<form method="get" th:action="@{/stocks/logs}">
+    <!-- 상품을 지정해 들어온 경우 그 범위를 유지한다(재고 현황의 "이력" 링크) -->
+    <input type="hidden" name="productId" th:if="${condition.productId != null}" th:value="${condition.productId}">
+
+    <input type="text" name="keyword" th:value="${condition.keyword}" placeholder="상품명 또는 상품코드">
+
+    <!-- 변동 유형 다중선택: "입고+출고만 보기" 같은 조합을 위해 체크박스로 둔다(체크 없으면 전체) -->
+    <span>
+        <label th:each="t : ${T(com.stockandorder.domain.stock.enums.StockChangeType).values()}">
+            <input type="checkbox" name="changeTypes" th:value="${t.name()}"
+                   th:checked="${condition.changeTypes != null and condition.changeTypes.contains(t)}">
+            <span th:text="${t.label}"></span>
+        </label>
+    </span>
+
+    <input type="date" name="fromDate" th:value="${condition.fromDate}">
+    ~
+    <input type="date" name="toDate" th:value="${condition.toDate}">
+
+    <button type="submit">검색</button>
+    <a th:href="@{/stocks/logs}">초기화</a>
+    <a th:href="@{/stocks}">재고 현황으로</a>
+</form>
+
+<!-- 이력 목록 -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>일시</th>
+            <th>상품코드</th>
+            <th>상품명</th>
+            <th>유형</th>
+            <th>변동</th>
+            <th>변동 전</th>
+            <th>변동 후</th>
+            <th>처리자</th>
+            <th>사유 / 원본</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="log : ${logs}">
+            <td th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+            <td th:text="${log.productCode}"></td>
+            <td><a th:href="@{/products/{id}(id=${log.productId})}" th:text="${log.productName}"></a></td>
+            <td th:text="${log.changeTypeLabel}"></td>
+            <td th:text="${log.changeQuantityLabel}"
+                th:style="${log.increase} ? 'color:#1a7f37; font-weight:bold;' : 'color:#c0392b; font-weight:bold;'"></td>
+            <td th:text="${log.beforeQuantity}"></td>
+            <td th:text="${log.afterQuantity}"></td>
+            <!-- 처리자 컬럼 도입 이전 로그와 삭제된 회원의 로그는 비어 있다 -->
+            <td th:text="${log.actorName != null ? log.actorName : '-'}"></td>
+            <td>
+                <span th:if="${log.reason != null}" th:text="${log.reason}"></span>
+                <a th:if="${log.referenceUrl != null}" th:href="@{${log.referenceUrl}}">원본 문서</a>
+                <span th:if="${log.reason == null and log.referenceUrl == null}">-</span>
+            </td>
+        </tr>
+        <tr th:if="${logs.isEmpty()}">
+            <td colspan="9">조회된 이력이 없습니다.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 -->
+<div th:if="${logs.totalPages > 1}">
+    <a th:if="${!logs.first}"
+       th:href="@{/stocks/logs(productId=${condition.productId}, keyword=${condition.keyword}, changeTypes=${condition.changeTypes}, fromDate=${condition.fromDate}, toDate=${condition.toDate}, page=${logs.number - 1})}">이전</a>
+    <span th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}">
+        <a th:if="${i != logs.number}"
+           th:href="@{/stocks/logs(productId=${condition.productId}, keyword=${condition.keyword}, changeTypes=${condition.changeTypes}, fromDate=${condition.fromDate}, toDate=${condition.toDate}, page=${i})}"
+           th:text="${i + 1}"></a>
+        <strong th:if="${i == logs.number}" th:text="${i + 1}"></strong>
+    </span>
+    <a th:if="${!logs.last}"
+       th:href="@{/stocks/logs(productId=${condition.productId}, keyword=${condition.keyword}, changeTypes=${condition.changeTypes}, fromDate=${condition.fromDate}, toDate=${condition.toDate}, page=${logs.number + 1})}">다음</a>
+</div>
+
+<p>총 <span th:text="${logs.totalElements}"></span>건</p>
+
+</body>
+</html>

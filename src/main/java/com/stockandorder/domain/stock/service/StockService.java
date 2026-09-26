@@ -4,6 +4,8 @@ import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.member.repository.MemberRepository;
 import com.stockandorder.domain.stock.dto.StockAdjustFormResponse;
 import com.stockandorder.domain.stock.dto.StockListResponse;
+import com.stockandorder.domain.stock.dto.StockLogResponse;
+import com.stockandorder.domain.stock.dto.StockLogSearchCondition;
 import com.stockandorder.domain.stock.dto.StockSearchCondition;
 import com.stockandorder.domain.stock.entity.Stock;
 import com.stockandorder.domain.stock.entity.StockLog;
@@ -72,6 +74,17 @@ public class StockService {
         condition.setStatuses(List.of(StockStatus.OUT_OF_STOCK, StockStatus.SHORTAGE));
         condition.setSort("RISK");
         return stockRepository.search(condition, PageRequest.of(0, limit));
+    }
+
+    /**
+     * 재고 변동 이력 조회(읽기 전용). append-only로 쌓인 로그를 최신순으로 보여준다.
+     *
+     * 조정 화면과 달리 여기서는 아무것도 바꾸지 않는다. 이력은 정정하지 않고 역방향 로그로만
+     * 바로잡는다는 원칙(I-2)이 있으므로, 이 화면에 수정·삭제 경로는 두지 않는다.
+     */
+    @Transactional(readOnly = true)
+    public Page<StockLogResponse> searchStockLogs(StockLogSearchCondition condition, Pageable pageable) {
+        return stockLogRepository.search(condition, pageable);
     }
 
     /**

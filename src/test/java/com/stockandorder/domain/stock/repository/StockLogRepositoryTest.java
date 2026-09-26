@@ -4,6 +4,8 @@ import com.stockandorder.domain.category.entity.Category;
 import com.stockandorder.domain.member.entity.Member;
 import com.stockandorder.domain.member.enums.Role;
 import com.stockandorder.domain.product.entity.Product;
+import com.stockandorder.domain.stock.dto.StockLogResponse;
+import com.stockandorder.domain.stock.dto.StockLogSearchCondition;
 import com.stockandorder.domain.stock.entity.StockLog;
 import com.stockandorder.domain.stock.enums.StockChangeType;
 import com.stockandorder.global.config.JpaConfig;
@@ -11,6 +13,7 @@ import com.stockandorder.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,6 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,5 +113,110 @@ class StockLogRepositoryTest {
 
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
+    }
+
+    @Nested
+    @DisplayName("search: 변동 이력 동적 조회")
+    class Search {
+
+        private final Pageable pageable = PageRequest.of(0, 10);
+
+        @Test
+        @DisplayName("조건이 없으면 전체 이력을 최신순으로 반환한다")
+        void noCondition_returnsAllSortedByCreatedAtDesc() {
+            Page<StockLogResponse> result = stockLogRepository.search(new StockLogSearchCondition(), pageable);
+
+            assertThat(result.getTotalElements()).isEqualTo(5);
+            // 마지막에 저장된 productB의 ADJUST가 가장 최신이다
+            assertThat(result.getContent().get(0).getChangeType()).isEqualTo(StockChangeType.ADJUST);
+            assertThat(result.getContent().get(0).getProductCode()).isEqualTo("PRD-B");
+        }
+
+        @Test
+        @DisplayName("productId로 좁히면 해당 상품의 이력만 반환한다")
+        void productIdFilter() {
+            StockLogSearchCondition condition = new StockLogSearchCondition();
+            condition.setProductId(productA.getProductId());
+
+            Page<StockLogResponse> result = stockLogRepository.search(condition, pageable);
+
+            assertThat(result.getTotalElements()).isEqualTo(3);
+            assertThat(result.getContent())
+                    .allSatisfy(log -> assertThat(log.getProductCode()).isEqualTo("PRD-A"));
+        }
+
+        @Test
+        @DisplayName("변동 유형은 여러 개를 동시에 선택할 수 있다")
+        void changeTypeFilter_supportsMultipleSelection() {
+            StockLogSearchCondition condition = new StockLogSearchCondition();
+            condition.setChangeTypes(List.of(StockChangeType.INBOUND, StockChangeType.OUTBOUND));
+
+            Page<StockLogResponse> result = stockLogRepository.search(condition, pageable);
+
+            // INBOUND 2건(A, B) + OUTBOUND 1건(A), ADJUST 2건은 제외된다
+            assertThat(result.getTotalElements()).isEqualTo(3);
+            assertThat(result.getContent())
+                    .extracting(StockLogResponse::getChangeType)
+                    .doesNotContain(StockChangeType.ADJUST);
+        }
+
+        @Test
+        @DisplayName("키워드는 상품명과 상품코드 모두에 적용된다")
+        void keywordFilter_matchesNameOrCode() {
+            StockLogSearchCondition byName = new StockLogSearchCondition();
+            byName.setKeyword("설탕");
+            StockLogSearchCondition byCode = new StockLogSearchCondition();
+            byCode.setKeyword("PRD-B");
+
+            assertThat(stockLogRepository.search(byName, pageable).getTotalElements()).isEqualTo(2);
+            assertThat(stockLogRepository.search(byCode, pageable).getTotalElements()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("종료일 당일에 기록된 이력도 조회 범위에 포함된다")
+        void dateFilter_includesLogsCreatedOnEndDate() {
+            StockLogSearchCondition today = new StockLogSearchCondition();
+            today.setFromDate(LocalDate.now());
+            today.setToDate(LocalDate.now()); // 오늘 쌓인 로그는 종료일이 오늘이어도 빠지면 안 된다
+
+            assertThat(stockLogRepository.search(today, pageable).getTotalElements()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("조회 기간을 벗어나면 결과에서 제외된다")
+        void dateFilter_excludesOutOfRange() {
+            StockLogSearchCondition future = new StockLogSearchCondition();
+            future.setFromDate(LocalDate.now().plusDays(1));
+
+            assertThat(stockLogRepository.search(future, pageable).getTotalElements()).isZero();
+        }
+
+        @Test
+        @DisplayName("처리자가 없는 과거 로그도 누락되지 않고 이름만 비어서 조회된다")
+        void logWithoutActor_isNotDroppedByJoin() {
+            StockLogSearchCondition condition = new StockLogSearchCondition();
+            condition.setProductId(productB.getProductId());
+
+            Page<StockLogResponse> result = stockLogRepository.search(condition, pageable);
+
+            // actor를 inner join으로 걸면 이 행이 통째로 사라진다
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getContent())
+                    .extracting(StockLogResponse::getActorName)
+                    .containsExactlyInAnyOrder("매니저1", null);
+        }
+
+        @Test
+        @DisplayName("처리자 이름이 함께 조회된다")
+        void actorNameIsProjected() {
+            StockLogSearchCondition condition = new StockLogSearchCondition();
+            condition.setProductId(productA.getProductId());
+
+            Page<StockLogResponse> result = stockLogRepository.search(condition, pageable);
+
+            assertThat(result.getContent())
+                    .extracting(StockLogResponse::getActorName)
+                    .containsOnly("매니저1");
+        }
     }
 }
