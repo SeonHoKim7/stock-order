@@ -61,6 +61,7 @@ public class OutboundProcessor {
         List<OutboundItem> outboundItems = new ArrayList<>();
         for (OutboundCreateRequest.ItemRequest itemReq : request.getItems()) {
             Product product = findProduct(itemReq.getProductId());
+            validateSellable(product);
             outboundItems.add(OutboundItem.create(product, itemReq.getQuantity(), product.getSalePrice()));
         }
 
@@ -91,6 +92,14 @@ public class OutboundProcessor {
         }
         if (supplier.getSupplierType() == SupplierType.PURCHASE) {
             throw new BusinessException(ErrorCode.SUPPLIER_TYPE_INVALID);
+        }
+    }
+
+    // 단종·취급 중지된 상품은 새 출고를 만들 수 없다. 비활성화는 삭제가 아니므로 이미 나간 출고
+    // 이력과 재고 수치는 그대로 보존되고, 앞으로의 출고만 막힌다(거래처 비활성 처리와 같은 정책).
+    private void validateSellable(Product product) {
+        if (!product.isActive()) {
+            throw new BusinessException(ErrorCode.PRODUCT_INACTIVE);
         }
     }
 

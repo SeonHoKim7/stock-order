@@ -129,8 +129,8 @@ class OutboundProcessorTest {
 
             assertThat(outboundId).isEqualTo(GENERATED_OUTBOUND_ID);
             // 재고 차감은 StockService에 위임(referenceId = 방금 채번된 outbound_id)
-            then(stockService).should().decrease(PRODUCT_1_ID, 5, GENERATED_OUTBOUND_ID);
-            then(stockService).should().decrease(PRODUCT_2_ID, 2, GENERATED_OUTBOUND_ID);
+            then(stockService).should().decrease(PRODUCT_1_ID, 5, GENERATED_OUTBOUND_ID, PROCESSOR_ID);
+            then(stockService).should().decrease(PRODUCT_2_ID, 2, GENERATED_OUTBOUND_ID, PROCESSOR_ID);
 
             ArgumentCaptor<Outbound> captor = ArgumentCaptor.forClass(Outbound.class);
             then(outboundRepository).should().save(captor.capture());
@@ -151,8 +151,8 @@ class OutboundProcessorTest {
             outboundProcessor.createOnce(request, PROCESSOR_ID);
 
             InOrder ordered = inOrder(stockService);
-            ordered.verify(stockService).decrease(PRODUCT_1_ID, 5, GENERATED_OUTBOUND_ID);
-            ordered.verify(stockService).decrease(PRODUCT_2_ID, 2, GENERATED_OUTBOUND_ID);
+            ordered.verify(stockService).decrease(PRODUCT_1_ID, 5, GENERATED_OUTBOUND_ID, PROCESSOR_ID);
+            ordered.verify(stockService).decrease(PRODUCT_2_ID, 2, GENERATED_OUTBOUND_ID, PROCESSOR_ID);
         }
 
         @Test
@@ -234,6 +234,25 @@ class OutboundProcessorTest {
         }
 
         @Test
+        @DisplayName("비활성 상품이 포함되면 PRODUCT_INACTIVE 예외가 발생한다")
+        void createOnce_productInactive_throws() {
+            // 등록 폼은 활성 상품만 보여주지만(ProductRepository.search가 isActive=true로 거른다),
+            // 폼을 띄운 뒤 제출 전에 상품이 비활성화되면 비활성 상품으로 출고가 들어올 수 있다.
+            product1.deactivate();
+            given(supplierRepository.findById(SUPPLIER_ID)).willReturn(Optional.of(supplier));
+            given(memberRepository.findById(PROCESSOR_ID)).willReturn(Optional.of(processor));
+            given(productRepository.findById(PRODUCT_1_ID)).willReturn(Optional.of(product1));
+
+            assertThatThrownBy(() -> outboundProcessor.createOnce(request(item(PRODUCT_1_ID, 1)), PROCESSOR_ID))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.PRODUCT_INACTIVE));
+            then(outboundRepository).should(never()).save(any());
+            // 재고는 건드리지 않는다(검증이 차감보다 앞선다).
+            then(stockService).should(never()).decrease(anyLong(), anyInt(), anyLong(), anyLong());
+        }
+
+        @Test
         @DisplayName("처리자(Member)가 없으면 MEMBER_NOT_FOUND 예외가 발생한다")
         void createOnce_processorNotFound_throws() {
             given(supplierRepository.findById(SUPPLIER_ID)).willReturn(Optional.of(supplier));
@@ -261,7 +280,7 @@ class OutboundProcessorTest {
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.OUTBOUND_DUPLICATE_PRODUCT));
             then(outboundRepository).should(never()).save(any());
-            then(stockService).should(never()).decrease(anyLong(), anyInt(), anyLong());
+            then(stockService).should(never()).decrease(anyLong(), anyInt(), anyLong(), anyLong());
         }
 
         @Test

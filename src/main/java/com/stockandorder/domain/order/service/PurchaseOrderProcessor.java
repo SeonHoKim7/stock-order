@@ -51,6 +51,7 @@ public class PurchaseOrderProcessor {
 
         for (PurchaseOrderCreateRequest.ItemRequest itemReq : request.getItems()) {
             Product product = findProduct(itemReq.getProductId());
+            validateOrderable(product);
             // 발주 시점의 매입가를 스냅샷한다(이후 상품 가격이 바뀌어도 발주 금액은 보존).
             PurchaseOrderItem item = PurchaseOrderItem.create(
                     product,
@@ -74,6 +75,14 @@ public class PurchaseOrderProcessor {
         }
         if (supplier.getSupplierType() == SupplierType.SALES) {
             throw new BusinessException(ErrorCode.SUPPLIER_TYPE_INVALID);
+        }
+    }
+
+    // 단종·취급 중지된 상품은 새로 발주할 수 없다. 등록 폼은 활성 상품만 보여주지만, 폼을 띄운 뒤
+    // 제출 전에 비활성화되는 경우가 있으므로 서버에서도 막는다(출고의 상품 검증과 같은 정책).
+    private void validateOrderable(Product product) {
+        if (!product.isActive()) {
+            throw new BusinessException(ErrorCode.PRODUCT_INACTIVE);
         }
     }
 

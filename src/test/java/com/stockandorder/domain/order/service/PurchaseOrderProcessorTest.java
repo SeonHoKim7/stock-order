@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 /**
  * 발주 생성 1회(트랜잭션 단위)의 동작을 검증한다.
@@ -269,6 +270,26 @@ class PurchaseOrderProcessorTest {
                     .isInstanceOf(BusinessException.class)
                     .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                             .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND));
+        }
+
+        @Test
+        @DisplayName("비활성 상품이 포함되면 PRODUCT_INACTIVE 예외가 발생한다")
+        void createOnce_productInactive_throwsException() {
+            // 등록 폼은 활성 상품만 보여주지만, 폼을 띄운 뒤 제출 전에 비활성화되면 여기로 들어온다.
+            product1.deactivate();
+            given(supplierRepository.findById(1L)).willReturn(Optional.of(purchaseSupplier));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(requester));
+            given(purchaseOrderRepository.findMaxOrderNumberByPrefix(anyString())).willReturn(Optional.empty());
+            given(productRepository.findById(10L)).willReturn(Optional.of(product1));
+
+            PurchaseOrderCreateRequest request = createRequest(1L, null,
+                    List.of(createItemRequest(10L, 1)));
+
+            assertThatThrownBy(() -> purchaseOrderProcessor.createOnce(request, 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                            .isEqualTo(ErrorCode.PRODUCT_INACTIVE));
+            then(purchaseOrderRepository).should(never()).save(any());
         }
     }
 
