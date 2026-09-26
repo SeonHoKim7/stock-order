@@ -28,13 +28,15 @@ public class SupplierController {
     @GetMapping
     public String list(@RequestParam(required = false) String keyword,
                        @RequestParam(required = false) SupplierType supplierType,
+                       @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
                        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
-        Page<SupplierResponse> suppliers = supplierService.searchSuppliers(keyword, supplierType, pageable);
+        Page<SupplierResponse> suppliers = supplierService.searchSuppliers(keyword, supplierType, includeInactive, pageable);
         model.addAttribute("suppliers", suppliers);
         model.addAttribute("supplierTypes", SupplierType.values());
         model.addAttribute("keyword", keyword);
         model.addAttribute("supplierType", supplierType);
+        model.addAttribute("includeInactive", includeInactive);
         return "supplier/list";
     }
 

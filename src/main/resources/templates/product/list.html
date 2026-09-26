@@ -25,6 +25,11 @@
                 th:text="${cat.name}"
                 th:selected="${cat.categoryId == categoryId}"></option>
     </select>
+    <!-- 비활성 상품은 기본적으로 숨긴다. 비활성화한 상품을 되살리려면 이 필터로 찾아 들어간다. -->
+    <label>
+        <input type="checkbox" name="includeInactive" value="true" th:checked="${includeInactive}">
+        비활성 포함
+    </label>
     <button type="submit">검색</button>
     <a th:href="@{/products}">초기화</a>
 </form>
@@ -44,12 +49,13 @@
             <th>매입가</th>
             <th>매출가</th>
             <th>안전재고</th>
+            <th>상태</th>
             <th>등록일</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        <tr th:each="product : ${products}">
+        <tr th:each="product : ${products}" th:style="${!product.active} ? 'opacity:0.55;' : ''">
             <td th:text="${product.productCode}"></td>
             <td><a th:href="@{/products/{id}(id=${product.productId})}" th:text="${product.name}"></a></td>
             <td th:text="${product.categoryName}"></td>
@@ -57,13 +63,15 @@
             <td th:text="${#numbers.formatDecimal(product.purchasePrice, 1, 'COMMA', 0, 'POINT')}"></td>
             <td th:text="${#numbers.formatDecimal(product.salePrice, 1, 'COMMA', 0, 'POINT')}"></td>
             <td th:text="${product.safetyStock}"></td>
+            <td th:text="${product.active} ? '활성' : '비활성'"
+                th:style="${!product.active} ? 'color:#c0392b; font-weight:bold;' : ''"></td>
             <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd')}"></td>
             <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
                 <a th:href="@{/products/{id}/edit(id=${product.productId})}">수정</a>
             </td>
         </tr>
         <tr th:if="${products.isEmpty()}">
-            <td colspan="8">등록된 상품이 없습니다.</td>
+            <td colspan="10">등록된 상품이 없습니다.</td>
         </tr>
     </tbody>
 </table>
@@ -71,15 +79,15 @@
 <!-- 페이징 -->
 <div th:if="${products.totalPages > 1}">
     <a th:if="${!products.first}"
-       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${products.number - 1})}">이전</a>
+       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, includeInactive=${includeInactive}, page=${products.number - 1})}">이전</a>
     <span th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}">
         <a th:if="${i != products.number}"
-           th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${i})}"
+           th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, includeInactive=${includeInactive}, page=${i})}"
            th:text="${i + 1}"></a>
         <strong th:if="${i == products.number}" th:text="${i + 1}"></strong>
     </span>
     <a th:if="${!products.last}"
-       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, page=${products.number + 1})}">다음</a>
+       th:href="@{/products(keyword=${keyword}, categoryId=${categoryId}, includeInactive=${includeInactive}, page=${products.number + 1})}">다음</a>
 </div>
 
 <p>총 <span th:text="${products.totalElements}"></span>개</p>

@@ -31,13 +31,15 @@ public class ProductController {
     @GetMapping
     public String list(@RequestParam(required = false) String keyword,
                        @RequestParam(required = false) Long categoryId,
+                       @RequestParam(required = false, defaultValue = "false") boolean includeInactive,
                        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
-        Page<ProductResponse> products = productService.searchProducts(keyword, categoryId, pageable);
+        Page<ProductResponse> products = productService.searchProducts(keyword, categoryId, includeInactive, pageable);
         model.addAttribute("products", products);
         model.addAttribute("categories", categoryService.getCategories());
         model.addAttribute("keyword", keyword);
         model.addAttribute("categoryId", categoryId);
+        model.addAttribute("includeInactive", includeInactive);
         return "product/list";
     }
 

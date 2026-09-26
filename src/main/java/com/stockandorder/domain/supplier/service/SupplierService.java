@@ -32,8 +32,18 @@ public class SupplierService {
 
     @Transactional(readOnly = true)
     public Page<SupplierResponse> searchSuppliers(String keyword, SupplierType supplierType, Pageable pageable) {
+        return searchSuppliers(keyword, supplierType, false, pageable);
+    }
+
+    /**
+     * @param includeInactive true면 비활성 거래처까지 함께 반환한다. 거래처 관리 화면에서
+     *                        비활성화한 거래처를 다시 찾아 활성화하려면 목록에 나타나야 하므로 필요하다.
+     */
+    @Transactional(readOnly = true)
+    public Page<SupplierResponse> searchSuppliers(String keyword, SupplierType supplierType,
+                                                  boolean includeInactive, Pageable pageable) {
         String kw = (keyword != null && keyword.isBlank()) ? null : keyword;
-        return supplierRepository.search(kw, supplierType, pageable)
+        return supplierRepository.search(kw, supplierType, includeInactive, pageable)
                 .map(SupplierResponse::from);
     }
 

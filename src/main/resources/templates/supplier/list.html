@@ -25,6 +25,11 @@
                 th:text="${type.label}"
                 th:selected="${type == supplierType}"></option>
     </select>
+    <!-- 비활성 거래처는 기본적으로 숨긴다. 비활성화한 거래처를 되살리려면 이 필터로 찾아 들어간다. -->
+    <label>
+        <input type="checkbox" name="includeInactive" value="true" th:checked="${includeInactive}">
+        비활성 포함
+    </label>
     <button type="submit">검색</button>
     <a th:href="@{/suppliers}">초기화</a>
 </form>
@@ -41,23 +46,26 @@
             <th>유형</th>
             <th>담당자</th>
             <th>연락처</th>
+            <th>상태</th>
             <th>등록일</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        <tr th:each="supplier : ${suppliers}">
+        <tr th:each="supplier : ${suppliers}" th:style="${!supplier.active} ? 'opacity:0.55;' : ''">
             <td><a th:href="@{/suppliers/{id}(id=${supplier.supplierId})}" th:text="${supplier.name}"></a></td>
             <td th:text="${supplier.supplierTypeLabel}"></td>
             <td th:text="${supplier.contactName != null ? supplier.contactName : '-'}"></td>
             <td th:text="${supplier.contactPhone != null ? supplier.contactPhone : '-'}"></td>
+            <td th:text="${supplier.active} ? '활성' : '비활성'"
+                th:style="${!supplier.active} ? 'color:#c0392b; font-weight:bold;' : ''"></td>
             <td th:text="${#temporals.format(supplier.createdAt, 'yyyy-MM-dd')}"></td>
             <td sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
                 <a th:href="@{/suppliers/{id}/edit(id=${supplier.supplierId})}">수정</a>
             </td>
         </tr>
         <tr th:if="${suppliers.isEmpty()}">
-            <td colspan="6">등록된 거래처가 없습니다.</td>
+            <td colspan="7">등록된 거래처가 없습니다.</td>
         </tr>
     </tbody>
 </table>
@@ -65,15 +73,15 @@
 <!-- 페이징 -->
 <div th:if="${suppliers.totalPages > 1}">
     <a th:if="${!suppliers.first}"
-       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${suppliers.number - 1})}">이전</a>
+       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, includeInactive=${includeInactive}, page=${suppliers.number - 1})}">이전</a>
     <span th:each="i : ${#numbers.sequence(0, suppliers.totalPages - 1)}">
         <a th:if="${i != suppliers.number}"
-           th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${i})}"
+           th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, includeInactive=${includeInactive}, page=${i})}"
            th:text="${i + 1}"></a>
         <strong th:if="${i == suppliers.number}" th:text="${i + 1}"></strong>
     </span>
     <a th:if="${!suppliers.last}"
-       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, page=${suppliers.number + 1})}">다음</a>
+       th:href="@{/suppliers(keyword=${keyword}, supplierType=${supplierType}, includeInactive=${includeInactive}, page=${suppliers.number + 1})}">다음</a>
 </div>
 
 <p>총 <span th:text="${suppliers.totalElements}"></span>개</p>

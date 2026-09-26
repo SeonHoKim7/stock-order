@@ -26,11 +26,25 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 활성 상품만 조회한다. 발주·출고 등록 폼의 상품 선택지가 이 메서드를 쓰므로,
+     * 비활성 상품이 섞이지 않는 쪽이 기본값이어야 한다.
+     */
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(String keyword, Long categoryId, Pageable pageable) {
+        return searchProducts(keyword, categoryId, false, pageable);
+    }
+
+    /**
+     * @param includeInactive true면 비활성 상품까지 함께 반환한다. 상품 관리 화면에서
+     *                        비활성화한 상품을 다시 찾아 활성화하려면 목록에 나타나야 하므로 필요하다.
+     */
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> searchProducts(String keyword, Long categoryId,
+                                                boolean includeInactive, Pageable pageable) {
         // 빈 문자열은 null로 처리해 전체 조회
         String kw = (keyword != null && keyword.isBlank()) ? null : keyword;
-        return productRepository.search(kw, categoryId, pageable)
+        return productRepository.search(kw, categoryId, includeInactive, pageable)
                 .map(ProductResponse::from);
     }
 

@@ -69,22 +69,22 @@ class SupplierServiceTest {
     @DisplayName("빈 문자열 키워드는 null로 변환하여 repository에 전달한다")
     void searchSuppliers_blankKeyword_passesNullToRepository() {
         Pageable pageable = PageRequest.of(0, 10);
-        given(supplierRepository.search(null, null, pageable)).willReturn(Page.empty());
+        given(supplierRepository.search(null, null, false, pageable)).willReturn(Page.empty());
 
         supplierService.searchSuppliers("   ", null, pageable);
 
-        then(supplierRepository).should().search(null, null, pageable);
+        then(supplierRepository).should().search(null, null, false, pageable);
     }
 
     @Test
     @DisplayName("null 키워드는 그대로 null로 repository에 전달한다")
     void searchSuppliers_nullKeyword_passesNullToRepository() {
         Pageable pageable = PageRequest.of(0, 10);
-        given(supplierRepository.search(null, null, pageable)).willReturn(Page.empty());
+        given(supplierRepository.search(null, null, false, pageable)).willReturn(Page.empty());
 
         supplierService.searchSuppliers(null, null, pageable);
 
-        then(supplierRepository).should().search(null, null, pageable);
+        then(supplierRepository).should().search(null, null, false, pageable);
     }
 
     @Test
@@ -92,7 +92,7 @@ class SupplierServiceTest {
     void searchSuppliers_returnsPageOfSupplierResponse() {
         Pageable pageable = PageRequest.of(0, 10);
         Supplier supplier = Supplier.create("(주)테스트", SupplierType.PURCHASE, "홍길동", "010-1234-5678", null, null);
-        given(supplierRepository.search(null, null, pageable))
+        given(supplierRepository.search(null, null, false, pageable))
                 .willReturn(new PageImpl<>(List.of(supplier)));
 
         Page<SupplierResponse> result = supplierService.searchSuppliers(null, null, pageable);

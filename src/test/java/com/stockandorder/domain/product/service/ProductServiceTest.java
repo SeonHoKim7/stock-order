@@ -54,22 +54,22 @@ class ProductServiceTest {
     @DisplayName("빈 문자열 키워드는 null로 변환하여 repository에 전달한다")
     void searchProducts_blankKeyword_passesNullToRepository() {
         Pageable pageable = PageRequest.of(0, 10);
-        given(productRepository.search(null, null, pageable)).willReturn(Page.empty());
+        given(productRepository.search(null, null, false, pageable)).willReturn(Page.empty());
 
         productService.searchProducts("   ", null, pageable);
 
-        then(productRepository).should().search(null, null, pageable);
+        then(productRepository).should().search(null, null, false, pageable);
     }
 
     @Test
     @DisplayName("null 키워드는 그대로 null로 repository에 전달한다")
     void searchProducts_nullKeyword_passesNullToRepository() {
         Pageable pageable = PageRequest.of(0, 10);
-        given(productRepository.search(null, null, pageable)).willReturn(Page.empty());
+        given(productRepository.search(null, null, false, pageable)).willReturn(Page.empty());
 
         productService.searchProducts(null, null, pageable);
 
-        then(productRepository).should().search(null, null, pageable);
+        then(productRepository).should().search(null, null, false, pageable);
     }
 
     @Test
@@ -79,7 +79,7 @@ class ProductServiceTest {
         Category category = Category.create("미분류", null);
         Product product = Product.create("PRD-00001", "노트북", category, "EA",
                 BigDecimal.valueOf(1200000), 3, null);
-        given(productRepository.search(null, null, pageable))
+        given(productRepository.search(null, null, false, pageable))
                 .willReturn(new PageImpl<>(List.of(product)));
 
         Page<ProductResponse> result = productService.searchProducts(null, null, pageable);
