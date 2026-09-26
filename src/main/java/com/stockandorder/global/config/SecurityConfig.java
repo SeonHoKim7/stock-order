@@ -1,5 +1,7 @@
 package com.stockandorder.global.config;
 
+import com.stockandorder.domain.member.repository.MemberRepository;
+import com.stockandorder.global.auth.MemberStatusFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -10,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 /**
  * Spring Security 설정.
@@ -18,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * - JWT: Stateless하여 수평 확장에 유리하지만, 토큰 즉시 무효화(강제 로그아웃, 계정 비활성화 즉시 반영)가
  *   어렵다. 이 시스템은 사내 B2B이므로 관리자가 계정을 비활성화하면 즉시 세션을 끊을 수 있어야 한다.
  * - Session: 서버 측 세션이므로 즉시 무효화 가능. → HttpSession 기반 세션 인증 채택.
+ *   실제 차단은 {@link com.stockandorder.global.auth.MemberStatusFilter}가 수행한다.
  *
  * [세션 저장소를 Redis로 분리한 이유]
  * 처음에는 톰캣 인메모리 세션을 사용했다. 단일 서버라 문제가 없었으나, 컨테이너로 배포하기 시작하면서
@@ -58,11 +62,22 @@ public class SecurityConfig {
         return provider;
     }
 
+    /**
+     * 인증 스냅샷을 매 요청 DB와 대조하는 필터. 권한 판단(AuthorizationFilter)보다 먼저 돌아야
+     * 비활성 계정이 보호 자원에 닿기 전에 차단되고, 갱신된 권한으로 인가가 이루어진다.
+     */
+    @Bean
+    public MemberStatusFilter memberStatusFilter(MemberRepository memberRepository) {
+        return new MemberStatusFilter(memberRepository);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   DaoAuthenticationProvider authenticationProvider) throws Exception {
+                                                   DaoAuthenticationProvider authenticationProvider,
+                                                   MemberStatusFilter memberStatusFilter) throws Exception {
         http
                 .authenticationProvider(authenticationProvider)
+                .addFilterBefore(memberStatusFilter, AuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/error").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
