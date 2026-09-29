@@ -150,7 +150,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("본인 계정을 비활성화하면 MEMBER_SELF_MODIFICATION_NOT_ALLOWED 예외가 발생한다")
     void deactivateMember_self_throwsException() {
-        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        Member member = Member.create("testadmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         assertThatThrownBy(() -> memberService.deactivateMember(1L, 1L))
@@ -176,7 +176,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("본인 계정의 역할을 변경하면 MEMBER_SELF_MODIFICATION_NOT_ALLOWED 예외가 발생한다")
     void updateMember_selfRoleChange_throwsException() {
-        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        Member member = Member.create("testadmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         assertThatThrownBy(() -> memberService.updateMember(1L, 1L, updateRequest("데모 관리자", Role.STAFF)))
@@ -202,7 +202,7 @@ class MemberServiceTest {
     @Test
     @DisplayName("역할을 바꾸지 않는 본인 정보 수정은 허용된다")
     void updateMember_selfWithoutRoleChange_updatesProfile() {
-        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        Member member = Member.create("testadmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         memberService.updateMember(1L, 1L, updateRequest("데모", Role.ADMIN));
