@@ -200,6 +200,32 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("다른 ADMIN이 데모 계정을 비활성화하면 MEMBER_DEMO_ACCOUNT_PROTECTED 예외가 발생한다")
+    void deactivateMember_demoAccountByOtherAdmin_throwsException() {
+        Member demo = Member.create(Member.DEMO_LOGIN_ID, "encodedPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(demo));
+
+        assertThatThrownBy(() -> memberService.deactivateMember(1L, 2L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_DEMO_ACCOUNT_PROTECTED));
+        assertThat(demo.isActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("다른 ADMIN이 데모 계정의 역할을 변경하면 MEMBER_DEMO_ACCOUNT_PROTECTED 예외가 발생한다")
+    void updateMember_demoAccountRoleChangeByOtherAdmin_throwsException() {
+        Member demo = Member.create(Member.DEMO_LOGIN_ID, "encodedPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(demo));
+
+        assertThatThrownBy(() -> memberService.updateMember(1L, 2L, updateRequest("데모 관리자", Role.STAFF)))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_DEMO_ACCOUNT_PROTECTED));
+        assertThat(demo.getRole()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
     @DisplayName("역할을 바꾸지 않는 본인 정보 수정은 허용된다")
     void updateMember_selfWithoutRoleChange_updatesProfile() {
         Member member = Member.create("testadmin", "encodedPw", "데모 관리자", null, Role.ADMIN);

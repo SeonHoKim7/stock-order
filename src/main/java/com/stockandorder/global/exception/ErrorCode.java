@@ -26,6 +26,7 @@ public enum ErrorCode {
     MEMBER_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
     MEMBER_SELF_MODIFICATION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "본인 계정은 비활성화하거나 역할을 변경할 수 없습니다."),
     MEMBER_INITIAL_ADMIN_PROTECTED(HttpStatus.BAD_REQUEST, "초기 관리자 계정은 비활성화하거나 역할을 변경할 수 없습니다."),
+    MEMBER_DEMO_ACCOUNT_PROTECTED(HttpStatus.BAD_REQUEST, "데모 계정은 비활성화하거나 역할을 변경할 수 없습니다."),
     MEMBER_DEMO_PASSWORD_LOCKED(HttpStatus.BAD_REQUEST, "데모 계정은 비밀번호를 변경할 수 없습니다."),
 
     // Category
