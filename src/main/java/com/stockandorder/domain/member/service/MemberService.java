@@ -47,13 +47,17 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public void updateMember(Long memberId, MemberUpdateRequest request) {
+    public void updateMember(Long memberId, Long actorId, MemberUpdateRequest request) {
         Member member = findById(memberId);
+        if (member.getRole() != request.getRole()) {
+            validateNotSelfOrInitialAdmin(member, memberId, actorId);
+        }
         member.updateProfile(request.getName(), request.getEmail(), request.getRole());
     }
 
-    public void deactivateMember(Long memberId) {
+    public void deactivateMember(Long memberId, Long actorId) {
         Member member = findById(memberId);
+        validateNotSelfOrInitialAdmin(member, memberId, actorId);
         member.deactivate();
     }
 
@@ -64,10 +68,24 @@ public class MemberService {
 
     public void changePassword(Long memberId, PasswordChangeRequest request) {
         Member member = findById(memberId);
+        if (member.isDemoAccount()) {
+            throw new BusinessException(ErrorCode.MEMBER_DEMO_PASSWORD_LOCKED);
+        }
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
         }
         member.changePassword(passwordEncoder.encode(request.getNewPassword()));
+    }
+
+    // ADMIN 계정이 스스로를 잠그거나 초기 관리자를 잠가 관리 권한이 사라지는 것을 막는다.
+    // 본인 여부는 로그인 정보가 필요해 엔티티가 아닌 서비스에서 판단한다.
+    private void validateNotSelfOrInitialAdmin(Member member, Long memberId, Long actorId) {
+        if (memberId.equals(actorId)) {
+            throw new BusinessException(ErrorCode.MEMBER_SELF_MODIFICATION_NOT_ALLOWED);
+        }
+        if (member.isInitialAdmin()) {
+            throw new BusinessException(ErrorCode.MEMBER_INITIAL_ADMIN_PROTECTED);
+        }
     }
 
     private Member findById(Long memberId) {

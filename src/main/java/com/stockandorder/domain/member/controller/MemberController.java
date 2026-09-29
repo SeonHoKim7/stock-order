@@ -88,6 +88,7 @@ public class MemberController {
 
     @PostMapping("/admin/members/{id}/edit")
     public String update(@PathVariable Long id,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
                          @Valid @ModelAttribute("form") MemberUpdateRequest form,
                          BindingResult bindingResult,
                          Model model) {
@@ -96,13 +97,15 @@ public class MemberController {
             model.addAttribute("roles", Role.values());
             return "member/edit-form";
         }
-        memberService.updateMember(id, form);
+        memberService.updateMember(id, userDetails.getMemberId(), form);
         return "redirect:/admin/members/" + id;
     }
 
     @PostMapping("/admin/members/{id}/deactivate")
-    public String deactivate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        memberService.deactivateMember(id);
+    public String deactivate(@PathVariable Long id,
+                             @AuthenticationPrincipal CustomUserDetails userDetails,
+                             RedirectAttributes redirectAttributes) {
+        memberService.deactivateMember(id, userDetails.getMemberId());
         redirectAttributes.addFlashAttribute("message", "계정이 비활성화되었습니다.");
         return "redirect:/admin/members/" + id;
     }

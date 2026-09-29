@@ -33,7 +33,7 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void initAdmin() {
-        if (memberRepository.existsByLoginId("admin")) {
+        if (memberRepository.existsByLoginId(Member.INITIAL_ADMIN_LOGIN_ID)) {
             return;
         }
         // 공개 저장소에 비밀번호를 두지 않기 위해 환경변수로만 받는다.
@@ -43,7 +43,7 @@ public class DataInitializer implements ApplicationRunner {
             return;
         }
         memberRepository.save(Member.create(
-                "admin",
+                Member.INITIAL_ADMIN_LOGIN_ID,
                 passwordEncoder.encode(initAdminPassword),
                 "관리자",
                 null,

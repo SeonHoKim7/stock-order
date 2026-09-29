@@ -24,6 +24,9 @@ public enum ErrorCode {
     MEMBER_LOGIN_ID_DUPLICATE(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
     MEMBER_INACTIVE(HttpStatus.FORBIDDEN, "비활성화된 계정입니다."),
     MEMBER_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+    MEMBER_SELF_MODIFICATION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "본인 계정은 비활성화하거나 역할을 변경할 수 없습니다."),
+    MEMBER_INITIAL_ADMIN_PROTECTED(HttpStatus.BAD_REQUEST, "초기 관리자 계정은 비활성화하거나 역할을 변경할 수 없습니다."),
+    MEMBER_DEMO_PASSWORD_LOCKED(HttpStatus.BAD_REQUEST, "데모 계정은 비밀번호를 변경할 수 없습니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),

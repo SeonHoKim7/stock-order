@@ -71,7 +71,7 @@ class MemberServiceTest {
         request.setEmail("new@test.com");
         request.setRole(Role.MANAGER);
 
-        memberService.updateMember(1L, request);
+        memberService.updateMember(1L, 2L, request);
 
         // 더티체킹으로 save() 없이 변경 → 엔티티 상태 직접 검증
         assertThat(member.getName()).isEqualTo("홍길순");
@@ -84,7 +84,7 @@ class MemberServiceTest {
     void updateMember_notFound_throwsException() {
         given(memberRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> memberService.updateMember(999L, new MemberUpdateRequest()))
+        assertThatThrownBy(() -> memberService.updateMember(999L, 2L, new MemberUpdateRequest()))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.MEMBER_NOT_FOUND));
@@ -96,7 +96,7 @@ class MemberServiceTest {
         Member member = Member.create("staff01", "encodedPw", "홍길동", null, Role.STAFF);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        memberService.deactivateMember(1L);
+        memberService.deactivateMember(1L, 2L);
 
         assertThat(member.isActive()).isFalse();
     }
@@ -145,6 +145,93 @@ class MemberServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
                         .isEqualTo(ErrorCode.MEMBER_PASSWORD_MISMATCH));
+    }
+
+    @Test
+    @DisplayName("본인 계정을 비활성화하면 MEMBER_SELF_MODIFICATION_NOT_ALLOWED 예외가 발생한다")
+    void deactivateMember_self_throwsException() {
+        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> memberService.deactivateMember(1L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_SELF_MODIFICATION_NOT_ALLOWED));
+        assertThat(member.isActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("초기 관리자 계정을 비활성화하면 MEMBER_INITIAL_ADMIN_PROTECTED 예외가 발생한다")
+    void deactivateMember_initialAdmin_throwsException() {
+        Member admin = Member.create(Member.INITIAL_ADMIN_LOGIN_ID, "encodedPw", "관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> memberService.deactivateMember(1L, 2L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_INITIAL_ADMIN_PROTECTED));
+        assertThat(admin.isActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("본인 계정의 역할을 변경하면 MEMBER_SELF_MODIFICATION_NOT_ALLOWED 예외가 발생한다")
+    void updateMember_selfRoleChange_throwsException() {
+        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> memberService.updateMember(1L, 1L, updateRequest("데모 관리자", Role.STAFF)))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_SELF_MODIFICATION_NOT_ALLOWED));
+        assertThat(member.getRole()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
+    @DisplayName("초기 관리자 계정의 역할을 변경하면 MEMBER_INITIAL_ADMIN_PROTECTED 예외가 발생한다")
+    void updateMember_initialAdminRoleChange_throwsException() {
+        Member admin = Member.create(Member.INITIAL_ADMIN_LOGIN_ID, "encodedPw", "관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> memberService.updateMember(1L, 2L, updateRequest("관리자", Role.STAFF)))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_INITIAL_ADMIN_PROTECTED));
+        assertThat(admin.getRole()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
+    @DisplayName("역할을 바꾸지 않는 본인 정보 수정은 허용된다")
+    void updateMember_selfWithoutRoleChange_updatesProfile() {
+        Member member = Member.create("testAdmin", "encodedPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        memberService.updateMember(1L, 1L, updateRequest("데모", Role.ADMIN));
+
+        assertThat(member.getName()).isEqualTo("데모");
+    }
+
+    @Test
+    @DisplayName("데모 계정의 비밀번호를 변경하면 MEMBER_DEMO_PASSWORD_LOCKED 예외가 발생한다")
+    void changePassword_demoAccount_throwsException() {
+        Member demo = Member.create(Member.DEMO_LOGIN_ID, "encodedOldPw", "데모 관리자", null, Role.ADMIN);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(demo));
+
+        PasswordChangeRequest request = new PasswordChangeRequest();
+        request.setCurrentPassword("oldPw");
+        request.setNewPassword("newPw123");
+
+        assertThatThrownBy(() -> memberService.changePassword(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.MEMBER_DEMO_PASSWORD_LOCKED));
+        assertThat(demo.getPassword()).isEqualTo("encodedOldPw");
+    }
+
+    private MemberUpdateRequest updateRequest(String name, Role role) {
+        MemberUpdateRequest request = new MemberUpdateRequest();
+        request.setName(name);
+        request.setRole(role);
+        return request;
     }
 
     private MemberCreateRequest createRequest(String loginId, String password, Role role) {
