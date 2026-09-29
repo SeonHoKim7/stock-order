@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 376" width="880" height="376" role="img" aria-label="레이어 구성: Controller, Service, Entity, Repository">
+  <style>
+    text { font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI", sans-serif; }
+    .bg   { fill: #ffffff; }
+    .box  { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
+    .name { fill: #1f2328; font-size: 17px; font-weight: 700; }
+    .desc { fill: #57606a; font-size: 13.5px; }
+    .arrow{ stroke: #8c959f; stroke-width: 1.6; }
+    .head { fill: #8c959f; }
+    @media (prefers-color-scheme: dark) {
+      .bg   { fill: #0d1117; }
+      .box  { fill: #161b22; stroke: #30363d; }
+      .name { fill: #e6edf3; }
+      .desc { fill: #8b949e; }
+      .arrow{ stroke: #6e7681; }
+      .head { fill: #6e7681; }
+    }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="880" height="376"/>
+
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path class="head" d="M 0 0 L 10 5 L 0 10 z"/>
+  </marker>
+
+  <!-- Controller -->
+  <rect class="box" x="40" y="24" width="800" height="64" rx="8"/>
+  <rect x="40" y="24" width="6" height="64" rx="3" fill="#6DB33F"/>
+  <text class="name" x="72" y="62">Controller</text>
+  <text class="desc" x="210" y="61">요청·응답, 인증 주체(memberId) 추출, 화면 바인딩</text>
+  <line class="arrow" x1="440" y1="88" x2="440" y2="106" marker-end="url(#a)"/>
+
+  <!-- Service -->
+  <rect class="box" x="40" y="112" width="800" height="64" rx="8"/>
+  <rect x="40" y="112" width="6" height="64" rx="3" fill="#4C8EDA"/>
+  <text class="name" x="72" y="150">Service</text>
+  <text class="desc" x="210" y="149">트랜잭션 경계, 여러 엔티티 조합, 도메인 간 조율</text>
+  <line class="arrow" x1="440" y1="176" x2="440" y2="194" marker-end="url(#a)"/>
+
+  <!-- Entity -->
+  <rect class="box" x="40" y="200" width="800" height="64" rx="8"/>
+  <rect x="40" y="200" width="6" height="64" rx="3" fill="#C28B2B"/>
+  <text class="name" x="72" y="238">Entity</text>
+  <text class="desc" x="210" y="237">불변식, 상태 전이, 금액 계산 등 도메인 규칙</text>
+  <line class="arrow" x1="440" y1="264" x2="440" y2="282" marker-end="url(#a)"/>
+
+  <!-- Repository -->
+  <rect class="box" x="40" y="288" width="800" height="64" rx="8"/>
+  <rect x="40" y="288" width="6" height="64" rx="3" fill="#8B5CF6"/>
+  <text class="name" x="72" y="326">Repository</text>
+  <text class="desc" x="210" y="325">Spring Data JPA + QueryDSL (동적 조건 · fetch join)</text>
+</svg>

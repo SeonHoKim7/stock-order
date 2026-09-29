@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 690" width="1000" height="690" role="img" aria-label="시스템 구성: AWS EC2 위 Docker Compose로 띄운 앱·MySQL·Redis, GitHub Actions CI, Codespaces 빌드 후 Docker Hub를 거친 수동 배포">
+  <style>
+    text { font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI", sans-serif; }
+    .bg     { fill: #ffffff; }
+    .card   { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
+    .tile   { fill: #ffffff; stroke: #d8dee4; stroke-width: 1; }
+    .actor  { fill: #ffffff; stroke: #afb8c1; stroke-width: 1.4; }
+    .title  { fill: #1f2328; font-size: 15px; font-weight: 700; }
+    .port   { fill: #6e7781; font-size: 11.5px; font-weight: 700; }
+    .tt     { fill: #424a53; font-size: 10.5px; }
+    .an     { fill: #1f2328; font-size: 13px; font-weight: 700; }
+    .edge   { stroke: #6e7781; stroke-width: 1.7; fill: none; }
+    .head   { fill: #6e7781; }
+    .lbl    { fill: #57606a; font-size: 11.5px; }
+    @media (prefers-color-scheme: dark) {
+      .bg    { fill: #0d1117; }
+      .card  { fill: #161b22; stroke: #30363d; }
+      .tile  { fill: #0d1117; stroke: #30363d; }
+      .actor { fill: #161b22; stroke: #484f58; }
+      .title { fill: #e6edf3; }
+      .port  { fill: #8b949e; }
+      .tt    { fill: #c9d1d9; }
+      .an    { fill: #e6edf3; }
+      .edge  { stroke: #8b949e; }
+      .head  { fill: #8b949e; }
+      .lbl   { fill: #8b949e; }
+    }
+  </style>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path class="head" d="M0 0 L10 5 L0 10 z"/>
+  </marker>
+  <defs>
+    <symbol id="spring" viewBox="0 0 24 24"><path d="m23.693 10.7058-4.73-8.1844c-.4094-.7106-1.4166-1.2942-2.2402-1.2942H7.2725c-.819 0-1.8308.5836-2.2402 1.2942L.307 10.7058c-.4095.7106-.4095 1.873 0 2.5837l4.7252 8.189c.4094.7107 1.4166 1.2943 2.2402 1.2943h9.455c.819 0 1.826-.5836 2.2402-1.2942l4.7252-8.189c.4095-.7107.4095-1.8732 0-2.5838zM10.9763 5.7547c0-.5365.4377-.9742.9742-.9742s.9742.4377.9742.9742v5.8217c0 .5366-.4377.9742-.9742.9742s-.9742-.4376-.9742-.9742zm.9742 12.4294c-3.6427 0-6.6077-2.965-6.6077-6.6077.0047-2.0896.993-4.0521 2.6685-5.304a.8657.8657 0 0 1 1.2142.1788.8657.8657 0 0 1-.1788 1.2143c-2.1602 1.6048-2.612 4.6592-1.0072 6.8194 1.6049 2.1603 4.6593 2.612 6.8195 1.0072 1.2378-.9177 1.9673-2.372 1.9673-3.9157a4.8972 4.8972 0 0 0-1.9861-3.925c-.386-.2824-.466-.8284-.1836-1.2143.2824-.386.8283-.466 1.2143-.1835 1.6895 1.2471 2.6826 3.2238 2.6873 5.3228 0 3.6474-2.965 6.6077-6.6077 6.6077z"/></symbol>
+    <symbol id="thyme" viewBox="0 0 24 24"><path d="M1.727 0C.782 0 .02.761.02 1.707v20.586C.02 23.24.782 24 1.727 24h20.546c.945 0 1.707-.761 1.707-1.707V1.707C23.98.76 23.218 0 22.273 0H1.727zm18.714 3.273c-1.861 3.694-3.3 7.627-5.674 11.046-1.064 1.574-2.329 3.163-4.16 3.86-1.31.552-2.936.337-3.98-.647-.628-.523-.54-1.43-.173-2.075.96-1.224 2.34-2.02 3.59-2.915 3.842-2.625 7.446-5.654 10.397-9.27zm-1.693 1.25c-2.503 2.751-5.381 5.16-8.452 7.269l-.003.002-.003.003c-1.327.979-2.835 1.824-3.993 3.114-.349.333-.583 1.042-.537 1.481-.622-1.043-.8-2.614-.257-3.74.526-1.19 1.742-1.807 2.876-2.292 3.757-1.353 6.695-2.926 10.369-5.836z"/></symbol>
+    <symbol id="secu" viewBox="0 0 24 24"><path d="M20.59 2.066 11.993 0 3.41 2.066v6.612h4.557a3.804 3.804 0 0 0 0 .954H3.41v3.106C3.41 19.867 11.994 24 11.994 24s8.582-4.133 8.582-11.258V9.635h-4.545a3.616 3.616 0 0 0 0-.954h4.558zM12 12.262h-.006a3.109 3.109 0 1 1 .006 0zm-.006-4.579a.804.804 0 0 0-.37 1.52v.208l.238.237v.159l.159.159v.159l-.14.14.15.246v.159l-.16.189.223.222.246-.246V9.218a.804.804 0 0 0-.346-1.535zm0 .836a.299.299 0 1 1 .298-.299.299.299 0 0 1-.298.3z"/></symbol>
+    <symbol id="hib" viewBox="0 0 24 24"><path d="M5.365 0L9.98 7.994h8.95L14.31 0H5.366zm-.431.248L.46 7.994l4.613 8.008L9.55 8.24 4.934.248zm13.992 7.75l-4.475 7.76 4.617 7.992 4.471-7.744-4.613-8.008zm-4.905 8.006l-8.95.002L9.688 24h8.946l-4.615-7.994.001-.002Z"/></symbol>
+    <symbol id="mysql" viewBox="0 0 24 24"><path d="M16.405 5.501c-.115 0-.193.014-.274.033v.013h.014c.054.104.146.18.214.273.054.107.1.214.154.32l.014-.015c.094-.066.14-.172.14-.333-.04-.047-.046-.094-.08-.14-.04-.067-.126-.1-.18-.153zM5.77 18.695h-.927a50.854 50.854 0 00-.27-4.41h-.008l-1.41 4.41H2.45l-1.4-4.41h-.01a72.892 72.892 0 00-.195 4.41H0c.055-1.966.192-3.81.41-5.53h1.15l1.335 4.064h.008l1.347-4.064h1.095c.242 2.015.384 3.86.428 5.53zm4.017-4.08c-.378 2.045-.876 3.533-1.492 4.46-.482.716-1.01 1.073-1.583 1.073-.153 0-.34-.046-.566-.138v-.494c.11.017.24.026.386.026.268 0 .483-.075.647-.222.197-.18.295-.382.295-.605 0-.155-.077-.47-.23-.944L6.23 14.615h.91l.727 2.36c.164.536.233.91.205 1.123.4-1.064.678-2.227.835-3.483zm12.325 4.08h-2.63v-5.53h.885v4.85h1.745zm-3.32.135l-1.016-.5c.09-.076.177-.158.255-.25.433-.506.648-1.258.648-2.253 0-1.83-.718-2.746-2.155-2.746-.704 0-1.254.232-1.65.697-.43.508-.646 1.256-.646 2.245 0 .972.19 1.686.574 2.14.35.41.877.615 1.583.615.264 0 .506-.033.725-.098l1.325.772.36-.622zM15.5 17.588c-.225-.36-.337-.94-.337-1.736 0-1.393.424-2.09 1.27-2.09.443 0 .77.167.977.5.224.362.336.936.336 1.723 0 1.404-.424 2.108-1.27 2.108-.445 0-.77-.167-.978-.5zm-1.658-.425c0 .47-.172.856-.516 1.156-.344.3-.803.45-1.384.45-.543 0-1.064-.172-1.573-.515l.237-.476c.438.22.833.328 1.19.328.332 0 .593-.073.783-.22a.754.754 0 00.3-.615c0-.33-.23-.61-.648-.845-.388-.213-1.163-.657-1.163-.657-.422-.307-.632-.636-.632-1.177 0-.45.157-.81.47-1.085.315-.278.72-.415 1.22-.415.512 0 .98.136 1.4.41l-.213.476a2.726 2.726 0 00-1.064-.23c-.283 0-.502.068-.654.206a.685.685 0 00-.248.524c0 .328.234.61.666.85.393.215 1.187.67 1.187.67.433.305.648.63.648 1.168zm9.382-5.852c-.535-.014-.95.04-1.297.188-.1.04-.26.04-.274.167.055.053.063.14.11.214.08.134.218.313.346.407.14.11.28.216.427.31.26.16.555.255.81.416.145.094.293.213.44.313.073.05.12.14.214.172v-.02c-.046-.06-.06-.147-.105-.214-.067-.067-.134-.127-.2-.193a3.223 3.223 0 00-.695-.675c-.214-.146-.682-.35-.77-.595l-.013-.014c.146-.013.32-.066.46-.106.227-.06.435-.047.67-.106.106-.027.213-.06.32-.094v-.06c-.12-.12-.21-.283-.334-.395a8.867 8.867 0 00-1.104-.823c-.21-.134-.476-.22-.697-.334-.08-.04-.214-.06-.26-.127-.12-.146-.19-.34-.275-.514a17.69 17.69 0 01-.547-1.163c-.12-.262-.193-.523-.34-.763-.69-1.137-1.437-1.826-2.586-2.5-.247-.14-.543-.2-.856-.274-.167-.008-.334-.02-.5-.027-.11-.047-.216-.174-.31-.235-.38-.24-1.364-.76-1.644-.072-.18.434.267.862.422 1.082.115.153.26.328.34.5.047.116.06.235.107.356.106.294.207.622.347.897.073.14.153.287.247.413.054.073.146.107.167.227-.094.136-.1.334-.154.5-.24.757-.146 1.693.194 2.25.107.166.362.534.703.393.3-.12.234-.5.32-.835.02-.08.007-.133.048-.187v.015c.094.188.188.367.274.555.206.328.566.668.867.895.16.12.287.328.487.402v-.02h-.015c-.043-.058-.1-.086-.154-.133a3.445 3.445 0 01-.35-.4 8.76 8.76 0 01-.747-1.218c-.11-.21-.202-.436-.29-.643-.04-.08-.04-.2-.107-.24-.1.146-.247.273-.32.453-.127.288-.14.642-.188 1.01-.027.007-.014 0-.027.014-.214-.052-.287-.274-.367-.46-.2-.475-.233-1.238-.06-1.785.047-.14.247-.582.167-.716-.042-.127-.174-.2-.247-.303a2.478 2.478 0 01-.24-.427c-.16-.374-.24-.788-.414-1.162-.08-.173-.22-.354-.334-.513-.127-.18-.267-.307-.368-.52-.033-.073-.08-.194-.027-.274.014-.054.042-.075.094-.09.088-.072.335.022.422.062.247.1.455.194.662.334.094.066.195.193.315.226h.14c.214.047.455.014.655.073.355.114.675.28.962.46a5.953 5.953 0 012.085 2.286c.08.154.115.295.188.455.14.33.313.663.455.982.14.315.275.636.476.897.1.14.502.213.682.286.133.06.34.115.46.188.23.14.454.3.67.454.11.076.443.243.463.378z"/></symbol>
+    <symbol id="redis" viewBox="0 0 24 24"><path d="M22.71 13.145c-1.66 2.092-3.452 4.483-7.038 4.483-3.203 0-4.397-2.825-4.48-5.12.701 1.484 2.073 2.685 4.214 2.63 4.117-.133 6.94-3.852 6.94-7.239 0-4.05-3.022-6.972-8.268-6.972-3.752 0-8.4 1.428-11.455 3.685C2.59 6.937 3.885 9.958 4.35 9.626c2.648-1.904 4.748-3.13 6.784-3.744C8.12 9.244.886 17.05 0 18.425c.1 1.261 1.66 4.648 2.424 4.648.232 0 .431-.133.664-.365a100.49 100.49 0 0 0 5.54-6.765c.222 3.104 1.748 6.898 6.014 6.898 3.819 0 7.604-2.756 9.33-8.965.2-.764-.73-1.361-1.261-.73zm-4.349-5.013c0 1.959-1.926 2.922-3.685 2.922-.941 0-1.664-.247-2.235-.568 1.051-1.592 2.092-3.225 3.21-4.973 1.972.334 2.71 1.43 2.71 2.619z"/></symbol>
+    <symbol id="docker" viewBox="0 0 24 24"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></symbol>
+    <symbol id="gha" viewBox="0 0 24 24"><path d="M10.984 13.836a.5.5 0 0 1-.353-.146l-.745-.743a.5.5 0 1 1 .706-.708l.392.391 1.181-1.18a.5.5 0 0 1 .708.707l-1.535 1.533a.504.504 0 0 1-.354.146zm9.353-.147l1.534-1.532a.5.5 0 0 0-.707-.707l-1.181 1.18-.392-.391a.5.5 0 1 0-.706.708l.746.743a.497.497 0 0 0 .706-.001zM4.527 7.452l2.557-1.585A1 1 0 0 0 7.09 4.17L4.533 2.56A1 1 0 0 0 3 3.406v3.196a1.001 1.001 0 0 0 1.527.85zm2.03-2.436L4 6.602V3.406l2.557 1.61zM24 12.5c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3h-2.08a3.503 3.503 0 0 1-3.46 3 3.502 3.502 0 0 1-3.46-3h-.558c-.972 0-1.85-.399-2.482-1.042V17c0 1.654 1.346 3 3 3h.04c.244-1.693 1.7-3 3.46-3 1.93 0 3.5 1.57 3.5 3.5S13.43 24 11.5 24a3.502 3.502 0 0 1-3.46-3H8c-2.206 0-4-1.794-4-4V9.899A5.008 5.008 0 0 1 0 5c0-2.757 2.243-5 5-5s5 2.243 5 5a5.005 5.005 0 0 1-4.952 4.998A2.482 2.482 0 0 0 7.482 12h.558c.244-1.693 1.7-3 3.46-3a3.502 3.502 0 0 1 3.46 3h2.08a3.503 3.503 0 0 1 3.46-3c1.93 0 3.5 1.57 3.5 3.5zm-15 8c0 1.378 1.122 2.5 2.5 2.5s2.5-1.122 2.5-2.5-1.122-2.5-2.5-2.5S9 19.122 9 20.5zM5 9c2.206 0 4-1.794 4-4S7.206 1 5 1 1 2.794 1 5s1.794 4 4 4zm9 3.5c0-1.378-1.122-2.5-2.5-2.5S9 11.122 9 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm9 0c0-1.378-1.122-2.5-2.5-2.5S18 11.122 18 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm-13 8a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm12 0c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3.002c-.007.001-.013.005-.021.005l-.506.017h-.017a.5.5 0 0 1-.016-.999l.506-.017c.018-.002.035.006.052.007A3.503 3.503 0 0 1 20.5 17c1.93 0 3.5 1.57 3.5 3.5zm-1 0c0-1.378-1.122-2.5-2.5-2.5S18 19.122 18 20.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5z"/></symbol>
+    <symbol id="gh" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+    <symbol id="ec2" viewBox="0 0 24 24"><path d="M6.429 17.571h10.714V6.857H6.429v10.714ZM18 6.857h1.714v.857H18V9.43h1.714v.857H18v1.285h1.714v.858H18v1.714h1.714V15H18v1.714h1.714v.857H18v.059a.8.8 0 0 1-.799.799h-.058v1.714h-.857v-1.714H14.57v1.714h-.857v-1.714H12.43v1.714h-.858v-1.714H9.857v1.714H9v-1.714H7.286v1.714h-.857v-1.714H6.37a.8.8 0 0 1-.799-.8v-.058H4.286v-.857H5.57V15H4.286v-.857H5.57v-1.714H4.286v-.858H5.57v-1.285H4.286v-.857H5.57V7.714H4.286v-.857H5.57V6.8a.8.8 0 0 1 .8-.799h.058V4.286h.857V6H9V4.286h.857V6h1.714V4.286h.858V6h1.285V4.286h.857V6h1.715V4.286h.857V6h.058a.8.8 0 0 1 .799.799v.058ZM12.429 23.09a.054.054 0 0 1-.054.053H.91a.053.053 0 0 1-.053-.053V11.625c0-.03.024-.054.053-.054h2.52v-.857H.91a.911.911 0 0 0-.91.91V23.09c0 .502.408.91.91.91h11.465a.91.91 0 0 0 .91-.91V21h-.856ZM24 .91v11.465a.91.91 0 0 1-.91.91h-2.52v-.856h2.519a.054.054 0 0 0 .053-.054V.91a.053.053 0 0 0-.053-.053H11.625a.053.053 0 0 0-.054.053v2.52h-.857V.91c0-.502.409-.91.91-.91H23.09a.91.91 0 0 1 .91.91Z"/></symbol>
+    <symbol id="jdk" viewBox="0 0 24 24"><path d="M11.915 0 11.7.215C9.515 2.4 7.47 6.39 6.046 10.483c-1.064 1.024-3.633 2.81-3.711 3.551-.093.87 1.746 2.611 1.55 3.235-.198.625-1.304 1.408-1.014 1.939.1.188.823.011 1.277-.491a13.389 13.389 0 0 0-.017 2.14c.076.906.27 1.668.643 2.232.372.563.956.911 1.667.911.397 0 .727-.114 1.024-.264.298-.149.571-.33.91-.5.68-.34 1.634-.666 3.53-.604 1.903.062 2.872.39 3.559.704.687.314 1.15.664 1.925.664.767 0 1.395-.336 1.807-.9.412-.563.631-1.33.72-2.24.06-.623.055-1.32 0-2.066.454.45 1.117.604 1.213.424.29-.53-.816-1.314-1.013-1.937-.198-.624 1.642-2.366 1.549-3.236-.08-.748-2.707-2.568-3.748-3.586C16.428 6.374 14.308 2.394 12.13.215zm.175 6.038a2.95 2.95 0 0 1 2.943 2.942 2.95 2.95 0 0 1-2.943 2.943A2.95 2.95 0 0 1 9.148 8.98a2.95 2.95 0 0 1 2.942-2.942zM8.685 7.983a3.515 3.515 0 0 0-.145.997c0 1.951 1.6 3.55 3.55 3.55 1.95 0 3.55-1.598 3.55-3.55 0-.329-.046-.648-.132-.951.334.095.64.208.915.336a42.699 42.699 0 0 1 2.042 5.829c.678 2.545 1.01 4.92.846 6.607-.082.844-.29 1.51-.606 1.94-.315.431-.713.651-1.315.651-.593 0-.932-.27-1.673-.61-.741-.338-1.825-.694-3.792-.758-1.974-.064-3.073.293-3.821.669-.375.188-.659.373-.911.5s-.466.2-.752.2c-.53 0-.876-.209-1.16-.64-.285-.43-.474-1.101-.545-1.948-.141-1.693.176-4.069.823-6.614a43.155 43.155 0 0 1 1.934-5.783c.348-.167.749-.31 1.192-.425zm-3.382 4.362a.216.216 0 0 1 .13.031c-.166.56-.323 1.116-.463 1.665a33.849 33.849 0 0 0-.547 2.555 3.9 3.9 0 0 0-.2-.39c-.58-1.012-.914-1.642-1.16-2.08.315-.24 1.679-1.755 2.24-1.781zm13.394.01c.562.027 1.926 1.543 2.24 1.783-.246.438-.58 1.068-1.16 2.08a4.428 4.428 0 0 0-.163.309 32.354 32.354 0 0 0-.562-2.49 40.579 40.579 0 0 0-.482-1.652.216.216 0 0 1 .127-.03z"/></symbol>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1000" height="690"/>
+
+  <rect x="266" y="30" width="716" height="346" rx="16" fill="none" stroke="#FF9900" stroke-width="4"/>
+  <rect class="bg" x="286" y="18" width="172" height="24"/>
+  <use href="#ec2" x="290" y="20" width="19" height="19" fill="#FF9900"/>
+  <text x="316" y="36" fill="#FF9900" font-size="13.5" font-weight="700">AWS EC2 · t3.micro</text>
+
+  <rect x="290" y="74" width="668" height="280" rx="14" fill="none" stroke="#2496ED" stroke-width="2.5"/>
+  <rect class="bg" x="308" y="62" width="160" height="24"/>
+  <use href="#docker" x="312" y="64" width="19" height="19" fill="#2496ED"/>
+  <text x="338" y="80" fill="#2496ED" font-size="13.5" font-weight="700">Docker Compose</text>
+
+  <rect class="actor" x="40" y="142" width="150" height="96" rx="10"/>
+  <circle cx="115" cy="170" r="11" fill="none" stroke="#8c959f" stroke-width="1.6"/>
+  <path d="M98 200 a 17 15 0 0 1 34 0" fill="none" stroke="#8c959f" stroke-width="1.6"/>
+  <text class="an" x="115" y="226" text-anchor="middle">사용자</text>
+
+  <rect class="card" x="316" y="118" width="300" height="156" rx="10"/>
+  <rect x="316" y="118" width="300" height="5" rx="2.5" fill="#6DB33F"/>
+  <use href="#spring" x="332" y="138" width="26" height="26" fill="#6DB33F"/>
+  <text class="title" x="368" y="157">stock-order</text>
+  <text class="port" x="600" y="157" text-anchor="end">80 → 8080</text>
+  <rect class="tile" x="332" y="176" width="130" height="26" rx="5"/>
+  <use href="#jdk" x="338" y="181" width="16" height="16" fill="#437291"/>
+  <text class="tt" x="360" y="193">Java 17</text>
+  <rect class="tile" x="470" y="176" width="130" height="26" rx="5"/>
+  <use href="#thyme" x="476" y="181" width="16" height="16" fill="#005F0F"/>
+  <text class="tt" x="498" y="193">Thymeleaf</text>
+  <rect class="tile" x="332" y="208" width="130" height="26" rx="5"/>
+  <use href="#secu" x="338" y="213" width="16" height="16" fill="#6DB33F"/>
+  <text class="tt" x="360" y="225">Spring Security</text>
+  <rect class="tile" x="470" y="208" width="130" height="26" rx="5"/>
+  <use href="#hib" x="476" y="213" width="16" height="16" fill="#59666C"/>
+  <text class="tt" x="498" y="225">JPA · QueryDSL</text>
+
+  <rect class="card" x="680" y="117" width="252" height="62" rx="10"/>
+  <rect x="680" y="117" width="252" height="5" rx="2.5" fill="#4479A1"/>
+  <use href="#mysql" x="696" y="137" width="26" height="26" fill="#4479A1"/>
+  <text class="title" x="732" y="156">MySQL 8.0</text>
+  <text class="port" x="916" y="156" text-anchor="end">:3306</text>
+
+  <rect class="card" x="680" y="265" width="252" height="62" rx="10"/>
+  <rect x="680" y="265" width="252" height="5" rx="2.5" fill="#FF4438"/>
+  <image href="data:image/png;base64,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" x="694" y="280" width="30" height="30"/>
+  <text class="title" x="732" y="304">Redis 7</text>
+  <text class="port" x="916" y="304" text-anchor="end">:6379</text>
+
+  <line class="edge" x1="190" y1="190" x2="310" y2="190" marker-end="url(#ah)"/>
+  <text class="lbl" x="200" y="182">HTTP :80</text>
+
+  <path class="edge" d="M616 182 C 652 182, 648 148, 674 148" marker-end="url(#ah)"/>
+  <text class="lbl" x="622" y="156">JDBC</text>
+
+  <path class="edge" d="M616 248 C 652 248, 648 296, 674 296" marker-end="url(#ah)"/>
+  <text class="lbl" x="560" y="300">세션 읽기 · 쓰기</text>
+
+  <text class="lbl" x="316" y="340">MySQL · Redis 포트는 외부에 열지 않음 (보안 그룹 인바운드 22 · 80만 허용)</text>
+
+  <rect class="actor" x="40" y="500" width="130" height="96" rx="10"/>
+  <circle cx="105" cy="528" r="11" fill="none" stroke="#8c959f" stroke-width="1.6"/>
+  <path d="M88 558 a 17 15 0 0 1 34 0" fill="none" stroke="#8c959f" stroke-width="1.6"/>
+  <text class="an" x="105" y="584" text-anchor="middle">개발자</text>
+
+  <rect x="210" y="420" width="500" height="100" rx="14" fill="none" stroke="#8b949e" stroke-width="2" stroke-dasharray="7 5"/>
+  <rect class="bg" x="228" y="408" width="40" height="22"/>
+  <text x="232" y="425" class="lbl" font-weight="700">CI</text>
+
+  <rect class="card" x="234" y="440" width="190" height="62" rx="10"/>
+  <rect x="234" y="440" width="190" height="5" rx="2.5" fill="#8b949e"/>
+  <use href="#gh" x="250" y="460" width="26" height="26" fill="#8b949e"/>
+  <text class="title" x="286" y="479">GitHub</text>
+  <text class="port" x="408" y="479" text-anchor="end">push</text>
+
+  <rect class="card" x="466" y="440" width="220" height="62" rx="10"/>
+  <rect x="466" y="440" width="220" height="5" rx="2.5" fill="#2088FF"/>
+  <use href="#gha" x="482" y="460" width="26" height="26" fill="#2088FF"/>
+  <text class="title" x="518" y="479">Actions</text>
+  <text class="port" x="670" y="479" text-anchor="end">빌드 · 테스트</text>
+
+  <rect x="210" y="560" width="770" height="100" rx="14" fill="none" stroke="#8b949e" stroke-width="2" stroke-dasharray="7 5"/>
+  <rect class="bg" x="228" y="548" width="84" height="22"/>
+  <text x="232" y="565" class="lbl" font-weight="700">배포 (수동)</text>
+
+  <rect class="card" x="234" y="580" width="240" height="62" rx="10"/>
+  <rect x="234" y="580" width="240" height="5" rx="2.5" fill="#8b949e"/>
+  <use href="#gh" x="250" y="600" width="26" height="26" fill="#8b949e"/>
+  <text class="title" x="286" y="619">Codespaces</text>
+  <text class="port" x="458" y="619" text-anchor="end">이미지 빌드</text>
+
+  <rect class="card" x="526" y="580" width="290" height="62" rx="10"/>
+  <rect x="526" y="580" width="290" height="5" rx="2.5" fill="#2496ED"/>
+  <use href="#docker" x="542" y="600" width="26" height="26" fill="#2496ED"/>
+  <text class="title" x="578" y="619">Docker Hub</text>
+  <text class="port" x="800" y="619" text-anchor="end">태그 = 커밋 해시</text>
+
+  <path class="edge" d="M170 530 C 200 530, 200 471, 228 471" marker-end="url(#ah)"/>
+  <path class="edge" d="M170 566 C 200 566, 200 611, 228 611" marker-end="url(#ah)"/>
+  <line class="edge" x1="424" y1="471" x2="460" y2="471" marker-end="url(#ah)"/>
+  <line class="edge" x1="474" y1="611" x2="520" y2="611" marker-end="url(#ah)"/>
+
+  <path class="edge" d="M816 611 C 880 611, 900 580, 900 384" marker-end="url(#ah)" stroke-dasharray="6 4"/>
+  <text class="lbl" x="908" y="454" font-weight="700">deploy.sh</text>
+  <text class="lbl" x="908" y="470">pull · up -d</text>
+  <text class="lbl" x="908" y="486">· 기동 확인</text>
+</svg>

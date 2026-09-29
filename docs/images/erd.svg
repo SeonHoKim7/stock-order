@@ -1,0 +1,245 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="880" viewBox="0 0 1200 880" font-family="Consolas, 'DejaVu Sans Mono', monospace">
+<rect width="1200" height="880" fill="#ffffff"/>
+<polyline points="245,140 305,110" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="245,200 272,200 272,625 305,625" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="245,355 288,355 288,195 305,195" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="245,420 305,430" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="245,455 280,455 280,690 305,690" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="540,110 610,110" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="422,302 422,355" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="540,430 610,420" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="732,189 732,375" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="540,645 610,640" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="1040,153 1040,195" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="1040,420 1040,470" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="925,390 895,390 895,700 925,700" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="925,245 880,245 880,120 855,120" fill="none" stroke="#666666" stroke-width="1.2"/>
+<polyline points="925,330 868,330 868,630 855,630" fill="none" stroke="#666666" stroke-width="1.2"/>
+<g>
+<rect x="30" y="60" width="215" height="193" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="30" y="60" width="215" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="39" y="78" font-size="12.5" font-weight="bold" fill="#111111">supplier</text>
+<text x="39" y="98" font-size="11.5" fill="#222222" font-weight="bold">supplier_id</text>
+<text x="236" y="98" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="39" y="114" font-size="11.5" fill="#222222">name</text>
+<text x="39" y="130" font-size="11.5" fill="#222222">supplier_type</text>
+<text x="39" y="146" font-size="11.5" fill="#222222">contact_name</text>
+<text x="39" y="162" font-size="11.5" fill="#222222">contact_phone</text>
+<text x="39" y="178" font-size="11.5" fill="#222222">contact_email</text>
+<text x="39" y="194" font-size="11.5" fill="#222222">address</text>
+<text x="39" y="210" font-size="11.5" fill="#222222">is_active</text>
+<text x="39" y="226" font-size="11.5" fill="#222222">created_at</text>
+<text x="39" y="242" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="30" y="315" width="215" height="177" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="30" y="315" width="215" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="39" y="333" font-size="12.5" font-weight="bold" fill="#111111">member</text>
+<text x="39" y="353" font-size="11.5" fill="#222222" font-weight="bold">member_id</text>
+<text x="236" y="353" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="39" y="369" font-size="11.5" fill="#222222">login_id</text>
+<text x="236" y="369" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="39" y="385" font-size="11.5" fill="#222222">password</text>
+<text x="39" y="401" font-size="11.5" fill="#222222">name</text>
+<text x="39" y="417" font-size="11.5" fill="#222222">email</text>
+<text x="39" y="433" font-size="11.5" fill="#222222">role</text>
+<text x="39" y="449" font-size="11.5" fill="#222222">is_active</text>
+<text x="39" y="465" font-size="11.5" fill="#222222">created_at</text>
+<text x="39" y="481" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="305" y="40" width="235" height="257" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="305" y="40" width="235" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="314" y="58" font-size="12.5" font-weight="bold" fill="#111111">purchase_order</text>
+<text x="314" y="78" font-size="11.5" fill="#222222" font-weight="bold">order_id</text>
+<text x="531" y="78" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="314" y="94" font-size="11.5" fill="#222222">order_number</text>
+<text x="531" y="94" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="314" y="110" font-size="11.5" fill="#222222">supplier_id</text>
+<text x="531" y="110" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="126" font-size="11.5" fill="#222222">requester_id</text>
+<text x="531" y="126" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="142" font-size="11.5" fill="#222222">approver_id</text>
+<text x="531" y="142" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="158" font-size="11.5" fill="#222222">status</text>
+<text x="314" y="174" font-size="11.5" fill="#222222">total_amount</text>
+<text x="314" y="190" font-size="11.5" fill="#222222">note</text>
+<text x="314" y="206" font-size="11.5" fill="#222222">ordered_at</text>
+<text x="314" y="222" font-size="11.5" fill="#222222">processed_at</text>
+<text x="314" y="238" font-size="11.5" fill="#222222">reject_reason</text>
+<text x="314" y="254" font-size="11.5" fill="#222222">version</text>
+<text x="314" y="270" font-size="11.5" fill="#222222">created_at</text>
+<text x="314" y="286" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="305" y="355" width="235" height="161" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="305" y="355" width="235" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="314" y="373" font-size="12.5" font-weight="bold" fill="#111111">inbound</text>
+<text x="314" y="393" font-size="11.5" fill="#222222" font-weight="bold">inbound_id</text>
+<text x="531" y="393" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="314" y="409" font-size="11.5" fill="#222222">inbound_number</text>
+<text x="531" y="409" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="314" y="425" font-size="11.5" fill="#222222">order_id</text>
+<text x="531" y="425" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="441" font-size="11.5" fill="#222222">processor_id</text>
+<text x="531" y="441" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="457" font-size="11.5" fill="#222222">inbound_date</text>
+<text x="314" y="473" font-size="11.5" fill="#222222">note</text>
+<text x="314" y="489" font-size="11.5" fill="#222222">created_at</text>
+<text x="314" y="505" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="305" y="570" width="235" height="177" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="305" y="570" width="235" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="314" y="588" font-size="12.5" font-weight="bold" fill="#111111">outbound</text>
+<text x="314" y="608" font-size="11.5" fill="#222222" font-weight="bold">outbound_id</text>
+<text x="531" y="608" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="314" y="624" font-size="11.5" fill="#222222">outbound_number</text>
+<text x="531" y="624" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="314" y="640" font-size="11.5" fill="#222222">supplier_id</text>
+<text x="531" y="640" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="656" font-size="11.5" fill="#222222">processor_id</text>
+<text x="531" y="656" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="314" y="672" font-size="11.5" fill="#222222">total_amount</text>
+<text x="314" y="688" font-size="11.5" fill="#222222">outbound_date</text>
+<text x="314" y="704" font-size="11.5" fill="#222222">note</text>
+<text x="314" y="720" font-size="11.5" fill="#222222">created_at</text>
+<text x="314" y="736" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="610" y="60" width="245" height="129" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="610" y="60" width="245" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="619" y="78" font-size="12.5" font-weight="bold" fill="#111111">purchase_order_item</text>
+<text x="619" y="98" font-size="11.5" fill="#222222" font-weight="bold">order_item_id</text>
+<text x="846" y="98" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="619" y="114" font-size="11.5" fill="#222222">order_id</text>
+<text x="846" y="114" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="130" font-size="11.5" fill="#222222">product_id</text>
+<text x="846" y="130" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="146" font-size="11.5" fill="#222222">quantity</text>
+<text x="619" y="162" font-size="11.5" fill="#222222">unit_price</text>
+<text x="619" y="178" font-size="11.5" fill="#222222">received_quantity</text>
+</g>
+<g>
+<rect x="610" y="375" width="245" height="97" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="610" y="375" width="245" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="619" y="393" font-size="12.5" font-weight="bold" fill="#111111">inbound_item</text>
+<text x="619" y="413" font-size="11.5" fill="#222222" font-weight="bold">inbound_item_id</text>
+<text x="846" y="413" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="619" y="429" font-size="11.5" fill="#222222">inbound_id</text>
+<text x="846" y="429" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="445" font-size="11.5" fill="#222222">order_item_id</text>
+<text x="846" y="445" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="461" font-size="11.5" fill="#222222">quantity</text>
+</g>
+<g>
+<rect x="610" y="585" width="245" height="113" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="610" y="585" width="245" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="619" y="603" font-size="12.5" font-weight="bold" fill="#111111">outbound_item</text>
+<text x="619" y="623" font-size="11.5" fill="#222222" font-weight="bold">outbound_item_id</text>
+<text x="846" y="623" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="619" y="639" font-size="11.5" fill="#222222">outbound_id</text>
+<text x="846" y="639" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="655" font-size="11.5" fill="#222222">product_id</text>
+<text x="846" y="655" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="619" y="671" font-size="11.5" fill="#222222">quantity</text>
+<text x="619" y="687" font-size="11.5" fill="#222222">unit_price</text>
+</g>
+<g>
+<rect x="925" y="40" width="230" height="113" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="925" y="40" width="230" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="934" y="58" font-size="12.5" font-weight="bold" fill="#111111">category</text>
+<text x="934" y="78" font-size="11.5" fill="#222222" font-weight="bold">category_id</text>
+<text x="1146" y="78" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="934" y="94" font-size="11.5" fill="#222222">name</text>
+<text x="1146" y="94" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="934" y="110" font-size="11.5" fill="#222222">description</text>
+<text x="934" y="126" font-size="11.5" fill="#222222">created_at</text>
+<text x="934" y="142" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="925" y="195" width="230" height="225" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="925" y="195" width="230" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="934" y="213" font-size="12.5" font-weight="bold" fill="#111111">product</text>
+<text x="934" y="233" font-size="11.5" fill="#222222" font-weight="bold">product_id</text>
+<text x="1146" y="233" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="934" y="249" font-size="11.5" fill="#222222">product_code</text>
+<text x="1146" y="249" font-size="10" fill="#888888" text-anchor="end">U</text>
+<text x="934" y="265" font-size="11.5" fill="#222222">name</text>
+<text x="934" y="281" font-size="11.5" fill="#222222">category_id</text>
+<text x="1146" y="281" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="934" y="297" font-size="11.5" fill="#222222">unit</text>
+<text x="934" y="313" font-size="11.5" fill="#222222">purchase_price</text>
+<text x="934" y="329" font-size="11.5" fill="#222222">sale_price</text>
+<text x="934" y="345" font-size="11.5" fill="#222222">safety_stock</text>
+<text x="934" y="361" font-size="11.5" fill="#222222">description</text>
+<text x="934" y="377" font-size="11.5" fill="#222222">is_active</text>
+<text x="934" y="393" font-size="11.5" fill="#222222">created_at</text>
+<text x="934" y="409" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="925" y="470" width="230" height="113" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="925" y="470" width="230" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="934" y="488" font-size="12.5" font-weight="bold" fill="#111111">stock</text>
+<text x="934" y="508" font-size="11.5" fill="#222222" font-weight="bold">stock_id</text>
+<text x="1146" y="508" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="934" y="524" font-size="11.5" fill="#222222">product_id</text>
+<text x="1146" y="524" font-size="10" fill="#888888" text-anchor="end">FK,U</text>
+<text x="934" y="540" font-size="11.5" fill="#222222">quantity</text>
+<text x="934" y="556" font-size="11.5" fill="#222222">created_at</text>
+<text x="934" y="572" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<g>
+<rect x="925" y="630" width="230" height="193" fill="#ffffff" stroke="#333333" stroke-width="1.3"/>
+<rect x="925" y="630" width="230" height="26" fill="#ededed" stroke="#333333" stroke-width="1.3"/>
+<text x="934" y="648" font-size="12.5" font-weight="bold" fill="#111111">stock_log</text>
+<text x="934" y="668" font-size="11.5" fill="#222222" font-weight="bold">stock_log_id</text>
+<text x="1146" y="668" font-size="10" fill="#888888" text-anchor="end">PK</text>
+<text x="934" y="684" font-size="11.5" fill="#222222">product_id</text>
+<text x="1146" y="684" font-size="10" fill="#888888" text-anchor="end">FK</text>
+<text x="934" y="700" font-size="11.5" fill="#222222">change_type</text>
+<text x="934" y="716" font-size="11.5" fill="#222222">change_quantity</text>
+<text x="934" y="732" font-size="11.5" fill="#222222">before_quantity</text>
+<text x="934" y="748" font-size="11.5" fill="#222222">after_quantity</text>
+<text x="934" y="764" font-size="11.5" fill="#222222">reference_id</text>
+<text x="934" y="780" font-size="11.5" fill="#222222">reason</text>
+<text x="934" y="796" font-size="11.5" fill="#222222">created_at</text>
+<text x="934" y="812" font-size="11.5" fill="#222222">updated_at</text>
+</g>
+<text x="262" y="134" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="288" y="104" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="262" y="194" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="288" y="619" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="262" y="349" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="288" y="189" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="275" y="176" font-size="10.5" fill="#666666" text-anchor="middle" font-family="'Malgun Gothic', sans-serif" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">요청자/승인자</text>
+<text x="262" y="414" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="288" y="424" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="275" y="406" font-size="10.5" fill="#666666" text-anchor="middle" font-family="'Malgun Gothic', sans-serif" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">처리자</text>
+<text x="262" y="449" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="288" y="684" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="272" y="560" font-size="10.5" fill="#666666" text-anchor="middle" font-family="'Malgun Gothic', sans-serif" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">처리자</text>
+<text x="557" y="104" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="593" y="104" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="432" y="317" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="432" y="340" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="557" y="424" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="593" y="414" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="742" y="204" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="742" y="360" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="732" y="286" font-size="10.5" fill="#666666" text-anchor="middle" font-family="'Malgun Gothic', sans-serif" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">입고 대상</text>
+<text x="557" y="639" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="593" y="634" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="1050" y="168" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="1050" y="180" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="1050" y="435" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="1050" y="455" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="908" y="384" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="908" y="694" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="908" y="239" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="872" y="114" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="908" y="324" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">1</text>
+<text x="872" y="624" font-size="11" fill="#333333" text-anchor="middle" stroke="#ffffff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">N</text>
+<text x="30" y="842" font-size="11" fill="#777777" font-family="'Malgun Gothic', sans-serif">PK 기본키 · FK 외래키 · U 유니크</text>
+<text x="30" y="860" font-size="11" fill="#777777" font-family="'Malgun Gothic', sans-serif">stock_log.reference_id 는 입고/출고 문서를 가리키는 다형 참조로, FK 제약을 두지 않음</text>
+</svg>
